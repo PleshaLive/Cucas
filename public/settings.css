@@ -21,6 +21,21 @@
   gap: 20px;         /* Интервал между кнопками */
 }
 
+.participant-count {
+  margin-top: 20px;
+  text-align: center;
+  font-size: 1.1rem;
+  color: var(--accent-color);
+}
+
+.skin-drop-status {
+  margin-top: 20px;  /* Отступ сверху, чтобы отделить от количества участников */
+  text-align: center;
+  font-size: 1.1rem;
+  color: var(--accent-color);
+}
+
+
 
 /* Сброс стилей */
 *,

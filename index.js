@@ -82,6 +82,11 @@ app.get('/login', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'login.html'));
 });
 
+app.get('/participants-count', (req, res) => {
+  res.json({ count: participants.length });
+});
+
+
 // Обработка формы логина
 app.post('/login', (req, res) => {
   const { username, password } = req.body;

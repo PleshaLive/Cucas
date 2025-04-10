@@ -24,9 +24,19 @@
 
   <!-- Блок с кнопками управления оверлеем -->
   <div class="overlay-sidebar-buttons">
-    <button id="btn-start" class="btn">Запустить сбор</button>
-    <button id="btn-open" class="btn">Открыть оверлей</button>
-    <button id="btn-roll" class="btn">Розыгрыш</button>
+    <button id="btn-start" class="btn">Start ruffle</button>
+    <button id="btn-open" class="btn">Open case</button>
+    <button id="btn-roll" class="btn">Roll case</button>
+  </div>
+
+    <!-- Новый элемент для отображения количества участников -->
+    <div id="participantCount" class="participant-count">
+      Количество участников: 0
+    </div>
+
+  <!-- Новый элемент для статуса Skin Drop Mode -->
+  <div id="skinDropStatus" class="skin-drop-status">
+    Skin Drop Mode: Unknown
   </div>
 
     <!-- Переключатель языка -->
@@ -36,6 +46,23 @@
       <button class="lang-btn" data-lang="ru">РУ</button>
     </div>
   </aside>
+
+  <script>
+    // Функция для обновления количества участников
+    function updateParticipantCount() {
+      fetch('/participants-count')
+        .then(response => response.json())
+        .then(data => {
+          document.getElementById('participantCount').textContent = 'Количество участников: ' + data.count;
+        })
+        .catch(err => console.error('Ошибка получения количества участников:', err));
+    }
+  
+    // Вызываем функцию сразу и затем раз в 5 секунд
+    updateParticipantCount();
+    setInterval(updateParticipantCount, 5000);
+  </script>
+  
 
   <script>
     document.getElementById('btn-start').addEventListener('click', () => {
@@ -506,12 +533,20 @@
           updatePreview();
           updateActiveNav();
           updateTranslations();
-        })
-        .catch(err => {
-          document.getElementById("message").textContent = getTranslation("error.settingsLoad", currentLanguage);
-          document.getElementById("message").style.color = "red";
-          console.error(err);
-        });
+
+     
+      let statusText = 'Skin Drop Mode: ' + data.dropMode;
+      if (data.dropMode === 'preset' && data.fixedSkin) {
+        statusText += ' (' + data.fixedSkin.name + ')';
+      }
+      document.getElementById('skinDropStatus').textContent = statusText;
+      
+    })
+    .catch(err => {
+      document.getElementById("message").textContent = getTranslation("error.settingsLoad", currentLanguage);
+      document.getElementById("message").style.color = "red";
+      console.error(err);
+    });
 
       document.getElementById("botUsername").addEventListener("input", updatePreview);
       document.getElementById("botOAuth").addEventListener("input", updatePreview);
