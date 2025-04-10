@@ -8,6 +8,7 @@ const fs = require('fs');
 const path = require('path');
 const WebSocket = require('ws');
 const tmi = require('tmi.js');
+const session = require('express-session'); // Для работы с сессиями
 
 // Папка для загрузки файлов (public/img)
 const uploadFolder = path.join(__dirname, 'public', 'img');
@@ -59,11 +60,49 @@ try {
 }
 
 const app = express();
+
+// Для обработки JSON и данных, отправляемых формой
 app.use(express.json());
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.urlencoded({ extended: true }));
+
+// Настройка сессий
+app.use(session({
+  secret: 'mySuperSecretKey', // Замените на безопасное значение или вынесите в переменные окружения
+  resave: false,
+  saveUninitialized: false
+}));
 
 /*************************************************************************
- * Маршруты для получения/сохранения настроек
+ * Маршруты для аутентификации
+ *************************************************************************/
+
+// Отдаем страницу входа (login.html)
+app.get('/login', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'login.html'));
+});
+
+// Обработка формы логина
+app.post('/login', (req, res) => {
+  const { username, password } = req.body;
+  // Проверка логина и пароля
+  if (username === 'StarGalaxy' && password === 'FuckTheWorld1996') {
+    req.session.authenticated = true;
+    return res.redirect('/settings.html');
+  }
+  // Если данные неверны, перенаправляем с параметром ошибки (эту логику можно доработать для отображения ошибки)
+  return res.redirect('/login?error=1');
+});
+
+// Защищенный маршрут для settings.html
+app.get('/settings.html', (req, res) => {
+  if (req.session && req.session.authenticated) {
+    return res.sendFile(path.join(__dirname, 'public', 'settings.html'));
+  }
+  res.redirect('/login');
+});
+
+/*************************************************************************
+ * Маршруты для получения/сохранения настроек и загрузки файлов
  *************************************************************************/
 app.get('/get-settings', (req, res) => {
   res.json(config);
@@ -134,7 +173,7 @@ client.on('message', (channel, tags, message, self) => {
   // Команда !letsgo – запускает сбор участников (только для стримера)
   if (msg === '!letsgo') {
     if (tags.badges && tags.badges.broadcaster === '1') {
-      startCollection(); // при новом запуске розыгрыша участники очищаются
+      startCollection(); // При новом запуске розыгрыша участники очищаются
     } else {
       client.say(config.CHANNEL_NAME, 'Galaxy runs this madhouse. Don’t fight it - just roll with the trip.');
     }
@@ -143,7 +182,7 @@ client.on('message', (channel, tags, message, self) => {
   // Команда !open – запускает анимацию (только для стримера)
   if (msg === '!open') {
     if (tags.badges && tags.badges.broadcaster === '1') {
-      isOpen = true; // разрешаем выполнение !roll после команды !open
+      isOpen = true; // Разрешаем выполнение !roll после команды !open
       sendOpenToOverlay();
     }
   }
@@ -181,11 +220,11 @@ client.on('message', (channel, tags, message, self) => {
   }
 });
 
-// Функция сброса списка участников и запуска сбора нового розыгрыша
+// Функция сброса списка участников и запуска нового розыгрыша
 function startCollection() {
   collecting = true;
-  participants = []; // очищаем старый список
-  sendParticipantsUpdate(); // обновляем клиентов с пустым списком
+  participants = []; // Очищаем старый список
+  sendParticipantsUpdate(); // Обновляем клиентов с пустым списком
   client.say(config.CHANNEL_NAME, 'Type !galaxy in chat and claim your prize - if the cosmos deems you worthy.');
 }
 
@@ -196,7 +235,6 @@ client.connect().catch(err => {
 /*************************************************************************
  * WebSocket-сервер для оверлея
  *************************************************************************/
-// Запускаем сервер на порту 8080
 const PORT = process.env.PORT || 8080;
 const server = app.listen(PORT, () => {
   console.log(`[SERVER] Запущен на порту ${PORT}`);
@@ -240,3 +278,10 @@ function sendRollToOverlay(winner, participantsList) {
     }
   });
 }
+
+/*************************************************************************
+ * Раздача статических файлов
+ * (Эта секция должна быть в самом конце, чтобы не перехватывать
+ * маршруты, описанные выше)
+ *************************************************************************/
+app.use(express.static(path.join(__dirname, 'public')));

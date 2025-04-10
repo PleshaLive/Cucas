@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Вход в Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Blender+Pro:wght@500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="login.css" />
+</head>
+<body>
+  <div class="login-container">
+    <form action="/login" method="post" class="login-form">
+      <div class="form-group">
+        <label for="username">ЛОГИН</label>
+        <input id="username" type="text" name="username" required />
+      </div>
+      <div class="form-group">
+        <label for="password">ПАРОЛЬ</label>
+        <input id="password" type="password" name="password" required />
+      </div>
+      <button type="submit">ВОЙТИ</button>
+      <!-- Если есть ошибка, можно отобразить сообщение. Пример ниже можно допилить скриптом -->
+      <p class="error">Неверный логин или пароль</p>
+    </form>
+  </div>
+</body>
+</html>
