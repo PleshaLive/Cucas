@@ -29,14 +29,14 @@
     <button id="btn-roll" class="btn">Roll case</button>
   </div>
 
-    <!-- Новый элемент для отображения количества участников -->
-    <div id="participantCount" class="participant-count">
-      Количество участников: 0
-    </div>
+  <!-- Элемент для отображения количества участников -->
+  <div id="participantCount" class="participant-count">
+    <span class="pc-static">Количество участников: </span><span class="pc-dynamic">0</span>
+  </div>
 
-  <!-- Новый элемент для статуса Skin Drop Mode -->
+  <!-- Элемент для отображения статуса Skin Drop Mode -->
   <div id="skinDropStatus" class="skin-drop-status">
-    Skin Drop Mode: Unknown
+    <span class="sdm-static">Skin Drop Mode: </span><span class="sdm-dynamic">Unknown</span>
   </div>
 
     <!-- Переключатель языка -->
@@ -48,15 +48,17 @@
   </aside>
 
   <script>
-    // Функция для обновления количества участников
-    function updateParticipantCount() {
-      fetch('/participants-count')
-        .then(response => response.json())
-        .then(data => {
-          document.getElementById('participantCount').textContent = 'Количество участников: ' + data.count;
-        })
-        .catch(err => console.error('Ошибка получения количества участников:', err));
-    }
+function updateParticipantCount() {
+  fetch('/participants-count')
+    .then(response => response.json())
+    .then(data => {
+      document.getElementById('participantCount').innerHTML =
+        '<span class="pc-static">Количество участников: </span>' +
+        '<span class="pc-dynamic">' + data.count + '</span>';
+    })
+    .catch(err => console.error('Ошибка получения количества участников:', err));
+}
+
   
     // Вызываем функцию сразу и затем раз в 5 секунд
     updateParticipantCount();
@@ -535,11 +537,18 @@
           updateTranslations();
 
      
-      let statusText = 'Skin Drop Mode: ' + data.dropMode;
-      if (data.dropMode === 'preset' && data.fixedSkin) {
-        statusText += ' (' + data.fixedSkin.name + ')';
-      }
-      document.getElementById('skinDropStatus').textContent = statusText;
+// Формируем статическую и динамическую части
+let statusStatic = 'Skin Drop Mode: ';
+let statusDynamic = data.dropMode;
+if (data.dropMode === 'preset' && data.fixedSkin) {
+  // Сначала выводим Weapon Type, потом " | " и затем Name
+  statusDynamic += ' (' + data.fixedSkin.weapontype + ' | ' + data.fixedSkin.name + ')';
+}
+// Обновляем элемент, используя innerHTML для применения CSS-классов
+document.getElementById('skinDropStatus').innerHTML =
+  '<span class="sdm-static">' + statusStatic + '</span>' +
+  '<span class="sdm-dynamic">' + statusDynamic + '</span>';
+
       
     })
     .catch(err => {
