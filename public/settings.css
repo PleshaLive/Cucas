@@ -14,6 +14,14 @@
   --transition-speed: 0.3s;
 }
 
+.overlay-sidebar-buttons {
+  margin-top: 40px;   /* Это опустит блок ниже. Измените значение по необходимости */
+  display: flex;
+  flex-direction: column; /* Кнопки располагаются вертикально */
+  gap: 20px;         /* Интервал между кнопками */
+}
+
+
 /* Сброс стилей */
 *,
 *::before,
