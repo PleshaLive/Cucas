@@ -21,6 +21,14 @@
       <li><a href="#drop-mode" class="nav-link" data-i18n="nav.dropMode">Drop Mode</a></li>
       <li><a href="#rarity" class="nav-link" data-i18n="nav.rarity">Rarity</a></li>
     </ul>
+
+  <!-- Блок с кнопками управления оверлеем -->
+  <div class="overlay-sidebar-buttons">
+    <button id="btn-start" class="btn">Запустить сбор</button>
+    <button id="btn-open" class="btn">Открыть оверлей</button>
+    <button id="btn-roll" class="btn">Розыгрыш</button>
+  </div>
+
     <!-- Переключатель языка -->
     <div class="language-switcher">
       <button class="lang-btn" data-lang="en">ENG</button>
@@ -29,6 +37,28 @@
     </div>
   </aside>
 
+  <script>
+    document.getElementById('btn-start').addEventListener('click', () => {
+      fetch('/start-collection', { method: 'POST' })
+        .then(res => res.json())
+        .then(data => console.log(data))
+        .catch(err => console.error(err));
+    });
+  
+    document.getElementById('btn-open').addEventListener('click', () => {
+      fetch('/open-overlay', { method: 'POST' })
+        .then(res => res.json())
+        .then(data => console.log(data))
+        .catch(err => console.error(err));
+    });
+  
+    document.getElementById('btn-roll').addEventListener('click', () => {
+      fetch('/roll', { method: 'POST' })
+        .then(res => res.json())
+        .then(data => console.log(data))
+        .catch(err => console.error(err));
+    });
+  </script>
   
   <!-- Основной контент страницы настроек -->
   <main class="main-content">
@@ -133,38 +163,6 @@
       <pre id="configPreview"></pre>
     </div>
   </main>
-
-<!-- Дополнительный блок для управления оверлеем -->
-<section class="overlay-controls">
-  <h2>Управление оверлеем</h2>
-  <button id="btn-start">Запустить сбор участников</button>
-  <button id="btn-open">Открыть оверлей</button>
-  <button id="btn-roll">Запустить розыгрыш</button>
-</section>
-
-<script>
-  document.getElementById('btn-start').addEventListener('click', () => {
-    fetch('/start-collection', { method: 'POST' })
-      .then(res => res.json())
-      .then(data => console.log(data))
-      .catch(err => console.error(err));
-  });
-
-  document.getElementById('btn-open').addEventListener('click', () => {
-    fetch('/open-overlay', { method: 'POST' })
-      .then(res => res.json())
-      .then(data => console.log(data))
-      .catch(err => console.error(err));
-  });
-
-  document.getElementById('btn-roll').addEventListener('click', () => {
-    fetch('/roll', { method: 'POST' })
-      .then(res => res.json())
-      .then(data => console.log(data))
-      .catch(err => console.error(err));
-  });
-</script>
-
 
   <script>
     let currentLanguage = "en";
