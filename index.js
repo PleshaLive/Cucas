@@ -197,11 +197,9 @@ client.connect().catch(err => {
  * WebSocket-сервер для оверлея
  *************************************************************************/
 // Запускаем сервер на порту 8080
-const PORT = process.env.PORT || 8080;
-const server = app.listen(PORT, () => {
-  console.log(`[SERVER] Запущен на порту ${PORT}`);
+const server = app.listen(8080, () => {
+  console.log('[SERVER] Запущен на порту 8080');
 });
-
 const wss = new WebSocket.Server({ server });
 wss.on('connection', (ws) => {
   console.log('[WS] Overlay connected!');
