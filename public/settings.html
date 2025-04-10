@@ -134,9 +134,6 @@ function updateParticipantCount() {
         </div>
         <button type="button" id="addSkinBtn" class="btn" data-i18n="btn.addSkin">Add Skin</button>
       </section>
-      <button type="button" class="btn scroll-case" onclick="window.open('/index.html','_blank')">
-        Открыть страницу со скроллом кейсов
-      </button>
       
       <!-- Режим выпадения скина -->
       <section class="section" id="drop-mode">
@@ -275,6 +272,10 @@ function updateParticipantCount() {
         }
       }
     };
+
+    <button type="button" class="btn scroll-case" onclick="window.open('/index.html','_blank')">
+        Открыть страницу со скроллом кейсов
+      </button>
 
     function getTranslation(key, lang) {
       return key.split('.').reduce((obj, k) => (obj || {})[k], translations[lang]) || key;
