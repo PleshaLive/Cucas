@@ -1,5 +1,6 @@
 /*************************************************************************
- * index.js — серверная логика (Express + TMI.js + WebSocket + аутентификация)
+ * index.js — серверная логика (Express + TMI.js + WebSocket + аутентификация 
+ * и управление оверлеем через веб-интерфейс)
  *************************************************************************/
 
 const express = require('express');
@@ -65,9 +66,9 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Настройка сессий
+// Настройка сессий (секрет рекомендуется хранить в переменной окружения)
 app.use(session({
-  secret: 'mySuperSecretKey', // Замените на более надёжное значение или используйте переменную окружения
+  secret: 'mySuperSecretKey', // Замените на более надёжное значение
   resave: false,
   saveUninitialized: false
 }));
@@ -93,12 +94,58 @@ app.post('/login', (req, res) => {
   return res.redirect('/login?error=1');
 });
 
-// Защищенный маршрут для settings.html
+// Защищённый маршрут для settings.html
 app.get('/settings.html', (req, res) => {
   if (req.session && req.session.authenticated) {
     return res.sendFile(path.join(__dirname, 'public', 'settings.html'));
   }
   res.redirect('/login');
+});
+
+/*************************************************************************
+ * Маршруты для управления оверлеем через веб-интерфейс (кнопки на странице /settings)
+ *************************************************************************/
+
+// Запуск сбора участников (аналог !letsgo)
+app.post('/start-collection', (req, res) => {
+  if (!(req.session && req.session.authenticated)) {
+    return res.status(403).json({ error: 'Not authorized' });
+  }
+  startCollection();
+  res.json({ success: true });
+});
+
+// Запуск анимации (аналог !open)
+app.post('/open-overlay', (req, res) => {
+  if (!(req.session && req.session.authenticated)) {
+    return res.status(403).json({ error: 'Not authorized' });
+  }
+  isOpen = true;
+  sendOpenToOverlay();
+  res.json({ success: true });
+});
+
+// Запуск розыгрыша (аналог !roll)
+app.post('/roll', (req, res) => {
+  if (!(req.session && req.session.authenticated)) {
+    return res.status(403).json({ error: 'Not authorized' });
+  }
+  if (!isOpen) {
+    return res.status(400).json({ error: 'Overlay is not open' });
+  }
+  if (participants.length === 0) {
+    return res.status(400).json({ error: 'Нет участников' });
+  }
+  collecting = false;
+  const winner = participants[Math.floor(Math.random() * participants.length)];
+  const delay = (config.chatDelay || 130) * 1000;
+  setTimeout(() => {
+    client.say(config.CHANNEL_NAME, `Let's congratulate the winner!`);
+  }, delay);
+  sendRollToOverlay(winner, participants);
+  // Сбрасываем флаг, чтобы повторный розыгрыш можно было запустить только после нового открытия
+  isOpen = false;
+  res.json({ success: true, winner });
 });
 
 /*************************************************************************
@@ -169,7 +216,7 @@ client.on('message', (channel, tags, message, self) => {
   const username = tags.username.toLowerCase();
   const msg = message.trim().toLowerCase();
 
-  // Команда !letsgo – запускает сбор участников (только для стримера)
+  // Команда !letsgo – запускает сбор участников (исходно для чата)
   if (msg === '!letsgo') {
     if (tags.badges && tags.badges.broadcaster === '1') {
       startCollection(); // При новом запуске розыгрыша участники очищаются
@@ -178,10 +225,10 @@ client.on('message', (channel, tags, message, self) => {
     }
   }
 
-  // Команда !open – запускает анимацию (только для стримера)
+  // Команда !open – запускает анимацию (исходно для чата)
   if (msg === '!open') {
     if (tags.badges && tags.badges.broadcaster === '1') {
-      isOpen = true; // Разрешаем выполнение !roll после команды !open
+      isOpen = true;
       sendOpenToOverlay();
     }
   }
@@ -195,7 +242,7 @@ client.on('message', (channel, tags, message, self) => {
     }
   }
 
-  // Команда !roll для выбора победителя (только для стримера)
+  // Команда !roll для выбора победителя (исходно для чата)
   if (msg === '!roll') {
     if (tags.badges && tags.badges.broadcaster === '1') {
       if (!isOpen) {
@@ -213,7 +260,6 @@ client.on('message', (channel, tags, message, self) => {
         client.say(config.CHANNEL_NAME, `Let's congratulate the winner!`);
       }, delay);
       sendRollToOverlay(winner, participants);
-      // После розыгрыша сбрасываем флаг, чтобы !roll не работала до нового !open
       isOpen = false;
     }
   }
@@ -223,7 +269,7 @@ client.on('message', (channel, tags, message, self) => {
 function startCollection() {
   collecting = true;
   participants = []; // Очищаем старый список
-  sendParticipantsUpdate(); // Обновляем клиентов с пустым списком
+  sendParticipantsUpdate();
   client.say(config.CHANNEL_NAME, 'Type !galaxy in chat and claim your prize - if the cosmos deems you worthy.');
 }
 
@@ -280,6 +326,6 @@ function sendRollToOverlay(winner, participantsList) {
 
 /*************************************************************************
  * Раздача статических файлов
- * (Эту часть оставляем в конце, чтобы маршруты выше имели приоритет)
+ * (Этот вызов должен быть в конце, чтобы маршруты выше имели приоритет)
  *************************************************************************/
 app.use(express.static(path.join(__dirname, 'public')));

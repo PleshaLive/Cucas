@@ -134,6 +134,38 @@
     </div>
   </main>
 
+<!-- Дополнительный блок для управления оверлеем -->
+<section class="overlay-controls">
+  <h2>Управление оверлеем</h2>
+  <button id="btn-start">Запустить сбор участников</button>
+  <button id="btn-open">Открыть оверлей</button>
+  <button id="btn-roll">Запустить розыгрыш</button>
+</section>
+
+<script>
+  document.getElementById('btn-start').addEventListener('click', () => {
+    fetch('/start-collection', { method: 'POST' })
+      .then(res => res.json())
+      .then(data => console.log(data))
+      .catch(err => console.error(err));
+  });
+
+  document.getElementById('btn-open').addEventListener('click', () => {
+    fetch('/open-overlay', { method: 'POST' })
+      .then(res => res.json())
+      .then(data => console.log(data))
+      .catch(err => console.error(err));
+  });
+
+  document.getElementById('btn-roll').addEventListener('click', () => {
+    fetch('/roll', { method: 'POST' })
+      .then(res => res.json())
+      .then(data => console.log(data))
+      .catch(err => console.error(err));
+  });
+</script>
+
+
   <script>
     let currentLanguage = "en";
     const translations = {
