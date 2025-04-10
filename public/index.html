@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>CS:GO Case Horizontal Scroll</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    /* Убираем переход opacity, чтобы не было fade для видео */
+    #backgroundVideo {
+      transition: none;
+    }
+    /* Стили для отображения количества участников */
+    #participantCount {
+      position: absolute;
+      bottom: 10px;
+      width: 100%;
+      text-align: center;
+      font-size: 24px;
+      color: #ffffff;
+      z-index: 10000;
+    }
+  </style>
+</head>
+<body>
+  <!-- Фоновое видео -->
+  <video id="backgroundVideo" playsinline muted preload="auto" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: -1;"></video>
+
+  <!-- Оверлей с лентой скинов -->
+  <div id="overlayContainer">
+    <div id="startMessage">...</div>
+    <div id="rollerContainer">
+      <div id="centerLine"></div> <!-- Стрелка / линия -->
+      <div id="skinStrip"></div>
+    </div>
+  </div>
+
+  <!-- Оверлей для показа победителя -->
+  <div id="winnerOverlay"></div>
+
+  <!-- Счётчик участников -->
+  <div id="participantCount">Participants: 0</div>
+
+  <!-- Звуковые эффекты -->
+  <audio id="tickSound" src="sounds/tick.wav" preload="auto"></audio>
+  <audio id="winnerSound" src="sounds/winner.wav" preload="auto"></audio>
+
+  <script>
+    let skins = [];
+    let rarityChances = {};
+    let overlaySettings = {};
+    let scrollSpeed = 10; // время анимации прокрутки (сек)
+    let presetWinningIndex;
+    let participants = []; // Глобальный массив участников
+    let ws; // Глобальная переменная для WebSocket
+
+    // Функция для установки WebSocket с авто-переподключением
+    function connectWebSocket() {
+      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+      const ws = new WebSocket(protocol + '//' + window.location.host);
+
+
+      ws.onopen = () => {
+        console.log('[Overlay] WebSocket connected!');
+      };
+
+      ws.onmessage = (event) => {
+        const data = JSON.parse(event.data);
+        console.log('[Overlay] Message received:', data);
+
+        if (data.type === 'open') {
+          fadeInOverlay();
+          playVideo();
+        } else if (data.type === 'roll') {
+          startScrolling(data.participants || []);
+        } else if (data.type === 'updateParticipants') {
+          updateParticipantsOverlay(data.participants);
+        } else if (data.type === 'settings-updated') {
+          window.location.reload();
+        }
+      };
+
+      ws.onclose = () => {
+        console.log('[Overlay] WebSocket connection closed. Reconnecting in 3 seconds...');
+        setTimeout(connectWebSocket, 3000);
+      };
+
+      ws.onerror = (error) => {
+        console.error('[Overlay] WebSocket error:', error);
+        ws.close();
+      };
+    }
+
+    // Загрузка настроек с сервера (/get-settings)
+    async function loadSettings() {
+      try {
+        const response = await fetch('/get-settings');
+        if (!response.ok) throw new Error('Settings not loaded');
+        const config = await response.json();
+
+        skins = Array.isArray(config.skins) ? config.skins : [];
+        rarityChances = config.rarityChances || {};
+        overlaySettings = {
+          dropMode: config.dropMode || 'random',
+          fixedSkin: config.fixedSkin || null
+        };
+        scrollSpeed = config.scrollSpeed || 10;
+        console.log('[Overlay] Settings loaded:', config);
+      } catch (err) {
+        console.error('[Overlay] Error loading settings:', err);
+      }
+    }
+
+    // Выбор случайного скина по шансам
+    function randomSkin() {
+      if (!rarityChances || !Object.keys(rarityChances).length || !skins.length) {
+        return { name: "Default Skin", image: "img/default.png", rarity: "Mil-Spec" };
+      }
+      const rand = Math.random() * 100;
+      let cumulative = 0, selectedRarity = null;
+      for (const rarity in rarityChances) {
+        cumulative += rarityChances[rarity];
+        if (rand < cumulative) {
+          selectedRarity = rarity;
+          break;
+        }
+      }
+      const filtered = skins.filter(s => s.rarity === selectedRarity);
+      if (!filtered.length) {
+        return skins[Math.floor(Math.random() * skins.length)];
+      }
+      return filtered[Math.floor(Math.random() * filtered.length)];
+    }
+
+    // Случайный выбор ника из списка участников
+    function randomUser(participants) {
+      return (!participants || !participants.length)
+        ? 'viewer'
+        : participants[Math.floor(Math.random() * participants.length)];
+    }
+
+    // Пересоздание ленты скинов
+    function resetSkinStrip() {
+      const rollerContainer = document.getElementById('rollerContainer');
+      const oldStrip = document.getElementById('skinStrip');
+      if (oldStrip) {
+        rollerContainer.removeChild(oldStrip);
+      }
+      const newStrip = document.createElement('div');
+      newStrip.id = 'skinStrip';
+      rollerContainer.appendChild(newStrip);
+      return newStrip;
+    }
+
+    // Плавное появление оверлея
+    function fadeInOverlay() {
+      const overlay = document.getElementById('overlayContainer');
+      overlay.classList.remove('visible');
+
+      const startMsg = document.getElementById('startMessage');
+      startMsg.style.display = 'block';
+      setTimeout(() => { startMsg.style.display = 'none'; }, 4000);
+
+      resetSkinStrip();
+
+      const styleEl = document.getElementById('dynamicKeyframes');
+      if (styleEl) styleEl.remove();
+
+      setTimeout(() => {
+        overlay.classList.add('visible');
+        startInitialAnimation();
+      }, 100);
+    }
+
+    // Функция для плавного скрытия оверлея
+    function fadeOutOverlay() {
+      const overlay = document.getElementById('overlayContainer');
+      overlay.classList.remove('visible');
+      console.log('[Overlay] fadeOutOverlay triggered');
+    }
+
+    // Начальная анимация ленты (эффект "прогрева")
+    function startInitialAnimation() {
+      const stripDiv = document.getElementById('skinStrip');
+      stripDiv.style.animation = '';
+      void stripDiv.offsetWidth;
+      stripDiv.innerHTML = '';
+      stripDiv.classList.add('initial-animation');
+
+      // Генерируем 150 элементов. Если участники уже есть – используем их имена циклически, иначе – "viewer".
+      for (let i = 0; i < 150; i++) {
+        let nickname = (participants && participants.length > 0)
+                       ? participants[i % participants.length]
+                       : 'viewer';
+        const s = randomSkin();
+        stripDiv.insertAdjacentHTML('beforeend', createSkinBlockHTML(nickname, s));
+      }
+    }
+
+    // Генерация HTML для одного блока скина
+    function createSkinBlockHTML(nickname, skin) {
+      return `
+        <div class="oneFrame skinItem" data-rarity="${skin.rarity}">
+          <div class="participantsBG"></div>
+          <div class="participantsNickname">${nickname}</div>
+          <div class="f1"></div>
+          <div class="skinPhoto" style="background-image:url('${skin.image}')"></div>
+          <div class="weaponType">${skin.weapontype || ''}</div>
+          <div class="skinName">${skin.name}</div>
+        </div>
+      `;
+    }
+
+    // Обновление никнеймов в уже созданных блоках, обновление глобального массива участников 
+    // и отображение количества участников в специальном блоке
+    function updateParticipantsOverlay(newParticipants) {
+      participants = newParticipants;
+      const nicknameElements = document.querySelectorAll('.participantsNickname');
+      nicknameElements.forEach((el, index) => {
+        el.textContent = (participants && participants.length > 0)
+                         ? participants[index % participants.length]
+                         : 'viewer';
+      });
+      // Обновляем счётчик участников
+      const countEl = document.getElementById('participantCount');
+      if (countEl) {
+        countEl.textContent = 'Participants: ' + participants.length;
+      }
+    }
+
+    // Функция для управления видео
+    function playVideo() {
+      const video = document.getElementById('backgroundVideo');
+      video.src = 'videos/case.webm'; // путь к видео
+      video.play().catch(err => console.error('Ошибка воспроизведения видео:', err));
+      
+      // Останавливаем видео на 3.5 сек.
+      function checkTime() {
+        if (video.currentTime >= 3.5) {
+          video.pause();
+          video.removeEventListener('timeupdate', checkTime);
+          console.log('[Video] Остановлено на стоп-кадре 3.5 сек.');
+        }
+      }
+      video.addEventListener('timeupdate', checkTime);
+    }
+
+    // Функция прокрутки скинов
+    function startScrolling(participantsList) {
+      const stripDiv = document.getElementById('skinStrip');
+      stripDiv.classList.remove('initial-animation');
+      stripDiv.style.transition = 'none';
+      stripDiv.style.transform = 'translateX(0)';
+      stripDiv.innerHTML = '';
+
+      const totalItems = 75;
+      for (let i = 0; i < totalItems; i++) {
+        const s = randomSkin();
+        const nick = randomUser(participantsList);
+        stripDiv.insertAdjacentHTML('beforeend', createSkinBlockHTML(nick, s));
+      }
+
+      const firstItem = stripDiv.querySelector('.skinItem');
+      const skinWidth = firstItem ? firstItem.offsetWidth : 257;
+
+      // Определяем координаты контейнера и стрелки
+      const container = document.getElementById('rollerContainer');
+      const containerRect = container.getBoundingClientRect();
+      const arrow = document.getElementById('centerLine');
+      const arrowRect = arrow.getBoundingClientRect();
+      const arrowCenterRelative = (arrowRect.left + arrowRect.width / 2) - containerRect.left;
+
+      let scrollDistance;
+      if (overlaySettings.dropMode === 'preset' && overlaySettings.fixedSkin) {
+        const winningIndex = Math.floor(totalItems / 2);
+        presetWinningIndex = winningIndex;
+        const items = stripDiv.querySelectorAll('.skinItem');
+        const winningItem = items[winningIndex];
+        if (winningItem) {
+          const nameEl = winningItem.querySelector('.skinName');
+          const photoEl = winningItem.querySelector('.skinPhoto');
+          const weaponEl = winningItem.querySelector('.weaponType');
+          winningItem.setAttribute('data-rarity', overlaySettings.fixedSkin.rarity || 'Mil-Spec');
+          if (nameEl) nameEl.textContent = overlaySettings.fixedSkin.name;
+          if (photoEl) photoEl.style.backgroundImage = `url('${overlaySettings.fixedSkin.image}')`;
+          if (weaponEl) weaponEl.textContent = overlaySettings.fixedSkin.weapontype || '';
+        }
+        scrollDistance = winningIndex * skinWidth + (skinWidth / 2) - arrowCenterRelative;
+      } else {
+        const numberOfSkinsToShow = 20;
+        scrollDistance = skinWidth * numberOfSkinsToShow;
+      }
+
+      const keyframes = `
+        @keyframes rollAnimation {
+          0% { transform: translateX(0); }
+          100% { transform: translateX(-${scrollDistance}px); }
+        }
+      `;
+      let styleEl = document.getElementById('dynamicKeyframes');
+      if (!styleEl) {
+        styleEl = document.createElement('style');
+        styleEl.id = 'dynamicKeyframes';
+        document.head.appendChild(styleEl);
+      }
+      styleEl.innerHTML = keyframes;
+
+      setTimeout(() => {
+        stripDiv.style.animation = `rollAnimation ${scrollSpeed}s ease-out forwards`;
+      }, 10);
+
+      startTickSoundCheck();
+
+      stripDiv.addEventListener('animationend', onRollAnimationEnd, { once: true });
+    }
+
+    // Определение победителя по окончании анимации
+    function onRollAnimationEnd(e) {
+      if (e.animationName !== 'rollAnimation') return;
+
+      const arrow = document.getElementById('centerLine');
+      const arrowRect = arrow.getBoundingClientRect();
+      const skinStrip = document.getElementById('skinStrip');
+      const items = document.querySelectorAll('#skinStrip .skinItem');
+      let winnerItem = null;
+
+      if (overlaySettings.dropMode === 'preset' && overlaySettings.fixedSkin && typeof presetWinningIndex !== 'undefined') {
+        winnerItem = items[presetWinningIndex];
+      } else {
+        let minDist = Infinity;
+        items.forEach(item => {
+          const rect = item.getBoundingClientRect();
+          const itemCenter = rect.left + rect.width / 2;
+          const dist = Math.abs(itemCenter - (arrowRect.left + arrowRect.width / 2));
+          if (dist < minDist) {
+            minDist = dist;
+            winnerItem = item;
+          }
+        });
+        if (winnerItem) {
+          const rect = winnerItem.getBoundingClientRect();
+          const itemCenter = rect.left + rect.width / 2;
+          const adjustment = itemCenter - (arrowRect.left + arrowRect.width / 2);
+          const style = window.getComputedStyle(skinStrip);
+          const matrix = new WebKitCSSMatrix(style.transform);
+          const currentTransform = matrix.m41;
+          const finalTransform = currentTransform - adjustment;
+          skinStrip.style.transition = 'transform 0.5s ease-out';
+          skinStrip.style.transform = `translateX(${finalTransform}px)`;
+        }
+      }
+
+      if (!winnerItem) return;
+      console.log('[Overlay] Selected winner:', winnerItem);
+
+      const winnerSound = document.getElementById('winnerSound');
+      winnerSound.currentTime = 0;
+      winnerSound.play();
+
+      animateWinnerHex(winnerItem);
+      
+      // Через 6 секунд после показа победителя продолжаем воспроизведение видео
+      setTimeout(() => {
+        const video = document.getElementById('backgroundVideo');
+        video.play().catch(err => console.error('Ошибка продолжения видео:', err));
+      }, 6000);
+      
+      setTimeout(() => { fadeOutOverlay(); }, 8000);
+    }
+
+    // Функция анимации победителя (без изменений, как в исходном варианте)
+    function animateWinnerHex(winnerItem) {
+      const centerLine = document.getElementById('centerLine');
+      const centerRect = centerLine.getBoundingClientRect();
+      const cloneWidth = 280, cloneHeight = 368;
+      const centerX = centerRect.left + centerRect.width / 2;
+      const centerY = centerRect.top + centerRect.height / 2;
+
+      const clone = winnerItem.cloneNode(true);
+      clone.id = 'floatingWinner';
+      clone.classList.add('winnerFinal');
+
+      const overlay = document.getElementById('winnerOverlay');
+      overlay.innerHTML = '';
+      overlay.classList.add('visible');
+      overlay.appendChild(clone);
+
+      // Позиционируем clone так, чтобы его центр совпадал с центром centerLine
+      clone.style.position = 'absolute';
+      clone.style.width = cloneWidth + 'px';
+      clone.style.height = cloneHeight + 'px';
+      clone.style.left = (centerX - cloneWidth / 2 + 229) + 'px';
+      clone.style.top  = (centerY - cloneHeight / 2 - -290) + 'px';
+      clone.style.transition = 'opacity 1s ease-out';
+      clone.style.opacity = '1';
+
+      // При необходимости убираем фон участников
+      const participantsBG = clone.querySelector('.participantsBG');
+      if (participantsBG) {
+        participantsBG.style.display = 'none';
+      }
+
+      // Добавляем подпись победителя
+      const winnerDiv = document.createElement('div');
+      winnerDiv.className = 'winner';
+      winnerDiv.textContent = 'winner';
+      clone.appendChild(winnerDiv);
+
+      // Через 3 секунды запускается fade out без дополнительных перемещений
+      setTimeout(() => {
+          clone.style.opacity = '0';
+          clone.addEventListener('transitionend', () => {
+              overlay.classList.remove('visible');
+              overlay.innerHTML = '';
+          });
+      }, 8750);
+    }
+
+    // Звук "тиков" при прокрутке
+    function startTickSoundCheck() {
+      let lastTickIndex = -1;
+      let animating = true;
+      const container = document.getElementById('rollerContainer');
+      const tickSound = document.getElementById('tickSound');
+      const stripDiv = document.getElementById('skinStrip');
+
+      stripDiv.addEventListener('animationend', (e) => {
+        if (e.animationName === 'rollAnimation') {
+          animating = false;
+        }
+      });
+
+      function rampVolume(audio, startVol, endVol, duration) {
+        let startTime = null;
+        function step(timestamp) {
+          if (!startTime) startTime = timestamp;
+          let elapsed = timestamp - startTime;
+          let progress = Math.min(elapsed / duration, 1);
+          audio.volume = startVol + (endVol - startVol) * progress;
+          if (progress < 1) requestAnimationFrame(step);
+        }
+        requestAnimationFrame(step);
+      }
+
+      function checkTick() {
+        if (!animating) return;
+        const containerRect = container.getBoundingClientRect();
+        const centerX = containerRect.left + containerRect.width / 2 + 1;
+        const skinItems = document.querySelectorAll('#skinStrip .skinItem');
+        skinItems.forEach((item, index) => {
+          const rect = item.getBoundingClientRect();
+          if (rect.left <= centerX && rect.right >= centerX) {
+            if (lastTickIndex !== index) {
+              lastTickIndex = index;
+              tickSound.currentTime = 0;
+              tickSound.volume = 0.1;
+              tickSound.play();
+              rampVolume(tickSound, 0.1, 1.0, 4000);
+            }
+          }
+        });
+        requestAnimationFrame(checkTick);
+      }
+      requestAnimationFrame(checkTick);
+    }
+
+    // При загрузке страницы сначала загружаются настройки, а затем устанавливается WebSocket-соединение
+    document.addEventListener('DOMContentLoaded', async () => {
+      await loadSettings();
+      connectWebSocket();
+    });
+  </script>
+</body>
+</html>

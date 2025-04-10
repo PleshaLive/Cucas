@@ -1,0 +1,422 @@
+/* Общие стили */
+body {
+    background: linear-gradient(135deg, #1e1e1e, #3a3a3a);
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    font-family: 'Roboto', sans-serif;
+    color: #ffffff00;
+}
+
+#overlayContainer {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    opacity: 0;
+    transition: opacity 1s ease-in-out;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    pointer-events: none;
+}
+#overlayContainer.visible { 
+    opacity: 1; 
+}
+
+#startMessage {
+    position: absolute;
+    top: 10%;
+    width: 100%;
+    text-align: center;
+    font-size: 48px;
+    display: none;
+    color: #fff;
+}
+
+/* Мейн контейнер */
+#rollerContainer {
+    width: 1800px; /* увеличено на 500px (было 1200px) */
+    height: 200px;
+    margin: 40px auto;
+    border: 0px solid #0F0C1D;
+    overflow: hidden;
+    position: relative;
+    background: rgba(0, 0, 0, 0.5);
+}
+
+#centerLine {
+    position: absolute;
+    left: 50%;
+    top: 0;
+    width: 80px;
+    height: 100%;
+    background: url('/img/LINE.png') no-repeat center center;
+    transform: translateX(-40px); /* Сдвигаем на 40px, чтобы «носик» был в центре */
+    pointer-events: none;
+    z-index: 9999;
+}  
+
+#skinStrip {
+    display: inline-block;
+    white-space: nowrap;
+    position: relative;
+    transform: translateX(0);
+    font-size: 0; /* Устраняем пробелы между inline-block элементами */
+}
+#skinStrip.initial-animation {
+    animation: scrollLoop 60s linear infinite;
+}
+@keyframes scrollLoop {
+    0%   { transform: translateX(0); }
+    100% { transform: translateX(-900px); }
+}
+
+/* Оверлей победителя */
+#winnerOverlay {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100vw;
+    height: 100vh;
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 999999;
+    pointer-events: none;
+}
+#winnerOverlay.visible {
+    display: flex;
+}
+
+/* Анимации появления с разных сторон */
+@keyframes zoomInFromRight {
+    0% {
+      opacity: 0;
+      transform: translateX(100%) scale(1.5);
+    }
+    100% {
+      opacity: 1;
+      transform: translateX(-40px) scale(1);
+    }
+}
+@keyframes zoomInFromLeft {
+    0% {
+      opacity: 0;
+      transform: translateX(-100%) scale(0.5);
+    }
+    100% {
+      opacity: 1;
+      transform: translateX(0) scale(1);
+    }
+}
+   
+@keyframes zoomInFromTop {
+    0% {
+      opacity: 0;
+      transform: translateY(-70px) translateX(-20px) scale(0.5);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(-28px) scale(1);
+    }
+}
+  
+@keyframes zoomInFromBottom {
+  0% {
+    opacity: 0;
+    transform: translateY(0%) scale(0.5);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Анимация исчезновения: теперь используется только fade */
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+/* ============================= */
+/*   Карточка одного скина (oneFrame)   */
+/* ============================= */
+.oneFrame {
+    position: relative;
+    display: inline-block;
+    width: 257px;
+    height: 198px;
+    background: #FFFFFF;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    font-size: 16px;
+    margin-right: 1px;
+}
+.oneFrame:last-child {
+    margin-right: 0;
+}
+
+/* F1 */
+.oneFrame .f1 {
+    box-sizing: border-box;
+    position: absolute;
+    width: 257px;
+    height: 169px;
+    left: 0;
+    top: 29px;
+    background: linear-gradient(180deg, #4C5CA7 0%, #13121C 100%);
+}
+
+/* SKIN PHOTO */
+.oneFrame .skinPhoto {
+    position: absolute;
+    width: 257px;
+    height: 169px;
+    left: calc(50% - 257px/2);
+    top: calc(50% - 169px/2 + 14.5px);
+    background-size: cover;
+    background-position: center;
+}
+
+/* ParticipantsBG */
+.oneFrame .participantsBG {
+    position: absolute;
+    width: 257px;
+    height: 29px;
+    left: 0;
+    top: 0;
+    background: #2C3878;
+}
+
+/* Participants NICKNAME */
+.oneFrame .participantsNickname {
+    position: absolute;
+    width: 206.55px;
+    height: 20.82px;
+    left: 27.39px;
+    top: 4px;
+    font-family: 'Blender Pro', sans-serif;
+    font-weight: 700;
+    font-size: 18px;
+    line-height: 26px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-transform: capitalize;
+    color: #FFFFFF;
+}
+
+/* Skin Name */
+.oneFrame .skinName {
+    position: absolute;
+    width: 189.57px;
+    height: 20.82px;
+    left: 10.96px;
+    top: 170.39px;
+    font-family: 'Blender Pro', sans-serif;
+    font-weight: 700;
+    font-size: 21.3672px;
+    line-height: 26px;
+    display: flex;
+    align-items: center;
+    text-transform: capitalize;
+    color: #FFFFFF;
+}
+
+/* WEAPON Type */
+.oneFrame .weaponType {
+    position: absolute;
+    width: 93.04px;
+    height: 10.22px;
+    left: 10.96px;
+    top: 159.6px;
+    font-family: 'Blender Pro', sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    line-height: 13px;
+    display: flex;
+    align-items: center;
+    text-transform: capitalize;
+    color: #65718A;
+}
+
+/* Окраска по редкости */
+.oneFrame[data-rarity="Mil-Spec"] .f1 {
+    background: linear-gradient(180deg, #183F80 0%, #100B1D 100%);
+}
+.oneFrame[data-rarity="Mil-Spec"] .participantsBG {
+    background: #1E5DBB;
+}
+.oneFrame[data-rarity="Mil-Spec"] .weaponType {
+    color: #236CD9;
+}
+
+.oneFrame[data-rarity="Restricted"] .f1 {
+    background: linear-gradient(180deg, #6E43B8 0%, #100B1D 100%);
+}
+.oneFrame[data-rarity="Restricted"] .participantsBG {
+    background: #5c3e8f;
+}
+.oneFrame[data-rarity="Restricted"] .weaponType {
+    color: #8550DE;
+}
+
+.oneFrame[data-rarity="Classified"] .f1 {
+    background: linear-gradient(180deg, #A5517F 0%, #100B1D 100%);
+}
+.oneFrame[data-rarity="Classified"] .participantsBG {
+    background: #7c4061;
+}
+.oneFrame[data-rarity="Classified"] .weaponType {
+    color: #CA5B98;
+}
+
+.oneFrame[data-rarity="Covert"] .f1 {
+    background: linear-gradient(180deg, #782424 0%, #100B1D 100%);
+}
+.oneFrame[data-rarity="Covert"] .participantsBG {
+    background: #8d2d2d;
+}
+.oneFrame[data-rarity="Covert"] .weaponType {
+    color: #B53E3E;
+}
+
+.oneFrame[data-rarity="Rare Special Items"] .f1 {
+    background: linear-gradient(180deg, #B7A47D 0%, #100B1D 100%);
+}
+.oneFrame[data-rarity="Rare Special Items"] .participantsBG {
+    background: #aa956a;
+}
+.oneFrame[data-rarity="Rare Special Items"] .weaponType {
+    color: #D2BC8D;
+}
+
+/* Финальное состояние победителя (winnerFinal) – визуальный вид оставляем прежним */
+.winnerFinal {
+    position: absolute !important;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    background: none !important;
+    overflow: visible !important;
+    width: 380px !important;
+    height: 468px !important;
+}
+
+.winnerFinal > .f1 {
+    box-sizing: border-box;
+    position: absolute;
+    width: 280px !important;
+    height: 403px !important;
+    left: -17px !important;
+    top: 0 !important;
+    background: none !important;
+    overflow: visible;
+    transition: all 0.5s ease;
+    z-index: 1;
+    clip-path: none !important;
+}
+.winnerFinal > .f1::before {
+    content: "";
+    position: absolute;
+    top: -35px;
+    left: 0;
+    width: 280px;
+    height: calc(403px + 35px);
+    background: url('/img/background.png') no-repeat center -5px !important;
+    background-size: contain !important;
+    z-index: -1;
+}
+.winnerFinal > .skinPhoto {
+    position: absolute;
+    width: 256px;
+    height: 157px;
+    left: -05px;
+    top: 47px;
+    background-size: cover;
+    background-position: center;
+    z-index: 2;
+}
+.winnerFinal > .weaponType {
+    position: absolute;
+    width: 200px;
+    height: 8px;
+    left: 32%;
+    transform: translateX(-50%);
+    top: 14px;
+    font-family: 'Blender Pro', sans-serif;
+    font-weight: 700;
+    font-size: 20px;
+    line-height: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-transform: uppercase;
+    color: #7DBFA6 !important;
+    z-index: 2;
+    text-align: center;
+}
+
+.winnerFinal > .skinName {
+    position: absolute;
+    width: 230px;
+    height: 10px;
+    left: 32%;
+    transform: translateX(-50%);
+    top: 33px;
+    font-family: 'Blender Pro', sans-serif;
+    font-weight: 700;
+    font-size: 21px;
+    line-height: 13px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-transform: uppercase;
+    color: #D7FFF0 !important;
+    z-index: 2;
+    text-align: center;
+}
+
+.winnerFinal > .winner {
+    position: absolute;
+    width: 68px;
+    height: 13px;
+    left: 32%;
+    transform: translateX(-50%);
+    top: 220px;
+    font-family: 'Blender Pro', sans-serif;
+    font-weight: 700;
+    font-size: 21px;
+    line-height: 73.43%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-transform: uppercase;
+    color: #9289B1;
+    z-index: 2;
+    text-align: center;
+}
+
+.winnerFinal > .participantsNickname {
+    position: absolute;
+    width: 230px;
+    height: 12px;
+    left: 32%;
+    transform: translateX(-50%);
+    top: 199.6px;
+    font-family: 'Blender Pro', sans-serif;
+    font-weight: 900;
+    font-size: 20px;
+    line-height: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-transform: uppercase;
+    color: #FFFFFF;
+    z-index: 2;
+    text-align: center;
+}

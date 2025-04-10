@@ -1,0 +1,219 @@
+{
+  "BOT_USERNAME": "galaxy_battle_cstv",
+  "BOT_OAUTH": "oauth:2p3nxl90u9vbnbto8sypk2qflqvw3r",
+  "CHANNEL_NAME": "galaxy_battle_cstv",
+  "chatDelay": "130",
+  "skins": [
+    {
+      "name": "Food Chain",
+      "weapontype": "MP9 ",
+      "image": "/img/1741427464968-MP9-19.png",
+      "imageName": "1741427464968-MP9-19.png",
+      "rarity": "Mil-Spec"
+    },
+    {
+      "name": "Duality",
+      "weapontype": "AWP",
+      "image": "/img/1741427469733-MP9-18.png",
+      "imageName": "1741427469733-MP9-18.png",
+      "rarity": "Mil-Spec"
+    },
+    {
+      "name": "Melondrama",
+      "weapontype": "Dual Berettas",
+      "image": "/img/1741427475074-MP9-17.png",
+      "imageName": "1741427475074-MP9-17.png",
+      "rarity": "Mil-Spec"
+    },
+    {
+      "name": " Rapid Eye Movement",
+      "weapontype": "FAMAS",
+      "image": "/img/1741427480187-MP9-20.png",
+      "imageName": "1741427480187-MP9-20.png",
+      "rarity": "Mil-Spec"
+    },
+    {
+      "name": "Tilted",
+      "weapontype": "Desert Eagle",
+      "image": "/img/1741427483709-MP9-16.png",
+      "imageName": "1741427483709-MP9-16.png",
+      "rarity": "Mil-Spec"
+    },
+    {
+      "name": "Vogue",
+      "weapontype": "Glock-18",
+      "image": "/img/1741427486821-MP9-21.png",
+      "imageName": "1741427486821-MP9-21.png",
+      "rarity": "Mil-Spec"
+    },
+    {
+      "name": "Emphorosaur-S",
+      "weapontype": "M4A1-S",
+      "image": "/img/1741427492360-MP9-22.png",
+      "imageName": "1741427492360-MP9-22.png",
+      "rarity": "Mil-Spec"
+    },
+    {
+      "name": "Night Terror",
+      "weapontype": "M4A1-S",
+      "image": "/img/1741427498725-MP9-23.png",
+      "imageName": "1741427498725-MP9-23.png",
+      "rarity": "Mil-Spec"
+    },
+    {
+      "name": "Crossfade",
+      "weapontype": "AK-47",
+      "image": "/img/1741427509794-MP9-24.png",
+      "imageName": "1741427509794-MP9-24.png",
+      "rarity": "Mil-Spec"
+    },
+    {
+      "name": "Tooth Fairy",
+      "weapontype": "M4A4",
+      "image": "/img/1741427518058-MP9-25.png",
+      "imageName": "1741427518058-MP9-25.png",
+      "rarity": "Mil-Spec"
+    },
+    {
+      "name": "Violent Daimyo",
+      "weapontype": "Five-SeveN",
+      "image": "/img/1741427522739-MP9-26.png",
+      "imageName": "1741427522739-MP9-26.png",
+      "rarity": "Mil-Spec"
+    },
+    {
+      "name": "Sakkaku",
+      "weapontype": "MAC-10",
+      "image": "/img/1741427541170-MP9-27.png",
+      "imageName": "1741427541170-MP9-27.png",
+      "rarity": "Mil-Spec"
+    },
+    {
+      "name": "Nightwish",
+      "weapontype": "AK-47",
+      "image": "/img/1741427694810-MP9-12.png",
+      "imageName": "1741427694810-MP9-12.png",
+      "rarity": "Restricted"
+    },
+    {
+      "name": "Jawbreaker",
+      "weapontype": "USP-S",
+      "image": "/img/1741427571858-MP9-15.png",
+      "imageName": "1741427571858-MP9-15.png",
+      "rarity": "Restricted"
+    },
+    {
+      "name": "Leaded Glass",
+      "weapontype": "M4A1-S",
+      "image": "/img/1741427592940-MP9-11.png",
+      "imageName": "1741427592940-MP9-11.png",
+      "rarity": "Restricted"
+    },
+    {
+      "name": "In Living Color",
+      "weapontype": "M4A4",
+      "image": "/img/1741427597252-MP9-14.png",
+      "imageName": "1741427597252-MP9-14.png",
+      "rarity": "Restricted"
+    },
+    {
+      "name": "Chrome Cannon",
+      "weapontype": "AWP",
+      "image": "/img/1741427602033-MP9-10.png",
+      "imageName": "1741427602033-MP9-10.png",
+      "rarity": "Classified"
+    },
+    {
+      "name": "The Empress",
+      "weapontype": "AK-47",
+      "image": "/img/1741427606591-MP9-13.png",
+      "imageName": "1741427606591-MP9-13.png",
+      "rarity": "Classified"
+    },
+    {
+      "name": "Head Shot",
+      "weapontype": "AK-47",
+      "image": "/img/1741427621389-MP9-9.png",
+      "imageName": "1741427621389-MP9-9.png",
+      "rarity": "Classified"
+    },
+    {
+      "name": "Printstream",
+      "weapontype": "Desert Eagle",
+      "image": "/img/1741427708803-MP9-3.png",
+      "imageName": "1741427708803-MP9-3.png",
+      "rarity": "Classified"
+    },
+    {
+      "name": "Crakow!",
+      "weapontype": "AWP",
+      "image": "/img/1741427712258-MP9-6.png",
+      "imageName": "1741427712258-MP9-6.png",
+      "rarity": "Classified"
+    },
+    {
+      "name": "Dragon Snore",
+      "weapontype": "Zeus x27",
+      "image": "/img/1741427716013-MP9-2.png",
+      "imageName": "1741427716013-MP9-2.png",
+      "rarity": "Covert"
+    },
+    {
+      "name": "Whiteout",
+      "weapontype": "USP-S",
+      "image": "/img/1741427719814-MP9-5.png",
+      "imageName": "1741427719814-MP9-5.png",
+      "rarity": "Covert"
+    },
+    {
+      "name": "Wildfire",
+      "weapontype": "AWP",
+      "image": "/img/1741427727212-MP9-7.png",
+      "imageName": "1741427727212-MP9-7.png",
+      "rarity": "Covert"
+    },
+    {
+      "name": "Hellfire",
+      "weapontype": "M4A4",
+      "image": "/img/1741427735466-MP9-1.png",
+      "imageName": "1741427735466-MP9-1.png",
+      "rarity": "Covert"
+    },
+    {
+      "name": "Case Hardened",
+      "weapontype": "Shadow Daggers",
+      "image": "/img/1741427739634-MP9-4.png",
+      "imageName": "1741427739634-MP9-4.png",
+      "rarity": "Rare Special Items"
+    },
+    {
+      "name": "Ultraviolet",
+      "weapontype": "Gut Knife",
+      "image": "/img/1741427745741-MP9-8.png",
+      "imageName": "1741427745741-MP9-8.png",
+      "rarity": "Rare Special Items"
+    },
+    {
+      "name": "Сlean",
+      "weapontype": "Navaja Knife",
+      "image": "/img/1741427748005-MP9.png",
+      "imageName": "1741427748005-MP9.png",
+      "rarity": "Rare Special Items"
+    }
+  ],
+  "dropMode": "preset",
+  "fixedSkin": {
+    "name": "Food Chain",
+    "weapontype": "MP9 ",
+    "image": "/img/1741427464968-MP9-19.png",
+    "imageName": "1741427464968-MP9-19.png",
+    "rarity": "Mil-Spec"
+  },
+  "rarityChances": {
+    "Mil-Spec": 81,
+    "Restricted": 15,
+    "Classified": 3,
+    "Covert": 0.7,
+    "Rare Special Items": 0.3
+  }
+}
