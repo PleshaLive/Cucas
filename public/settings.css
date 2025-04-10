@@ -28,6 +28,12 @@
   color: var(--accent-color);
 }
 
+.btn.scroll-case {
+  margin-top: 20px;
+  /* Другие стили по необходимости */
+}
+
+
 .skin-drop-status {
   margin-top: 20px;  /* Отступ сверху, чтобы отделить от количества участников */
   text-align: center;
