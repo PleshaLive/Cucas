@@ -113,6 +113,11 @@ function updateParticipantCount() {
         </div>
       </section>
       
+       <!-- Открыть страницу со скроллом кейсов -->
+      <button type="button" class="btn scroll-case" onclick="window.open('/index.html','_blank')">
+        Открыть страницу со скроллом кейсов
+      </button>
+
       <!-- Секция скинов -->
       <section class="section" id="skins">
         <h2 data-i18n="section.skins">Skins</h2>
@@ -272,10 +277,6 @@ function updateParticipantCount() {
         }
       }
     };
-
-    <button type="button" class="btn scroll-case" onclick="window.open('/index.html','_blank')">
-        Открыть страницу со скроллом кейсов
-      </button>
 
     function getTranslation(key, lang) {
       return key.split('.').reduce((obj, k) => (obj || {})[k], translations[lang]) || key;
