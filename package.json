@@ -1,9 +1,10 @@
 {
   "name": "twitch-overlay",
   "version": "1.0.0",
-  "main": "main.js",
+  "description": "Twitch overlay application with case scroll and settings",
+  "main": "index.js",
   "scripts": {
-    "start": "electron ."
+    "start": "node index.js"
   },
   "dependencies": {
     "express": "^4.21.2",
@@ -11,11 +12,6 @@
     "tmi.js": "^1.8.5",
     "ws": "^8.18.1"
   },
-  "devDependencies": {
-    "electron": "^25.2.0",
-    "electron-packager": "^17.1.2"
-  },
-  "description": "Twitch overlay application with case scroll and settings",
   "keywords": [],
   "author": "",
   "license": "ISC"
