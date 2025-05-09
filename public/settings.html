@@ -1,588 +1,712 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title data-i18n="sidebarHeading">Settings</title>
-  <!-- Подключаем шрифт Roboto -->
-  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
-  <!-- Подключаем внешний CSS-файл для настроек -->
-  <link rel="stylesheet" href="settings.css">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings - New Design (Sidebar)</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="settings.css" />
 </head>
 <body>
 
-  
-  <!-- Вертикальный сайдбар -->
-  <aside class="sidebar">
-    <h1 data-i18n="sidebarHeading">Settings</h1>
-    <ul class="nav-links">
-      <li><a href="#bot-settings" class="nav-link" data-i18n="nav.bot">Bot</a></li>
-      <li><a href="#skins" class="nav-link" data-i18n="nav.skins">Skins</a></li>
-      <li><a href="#drop-mode" class="nav-link" data-i18n="nav.dropMode">Drop Mode</a></li>
-      <li><a href="#rarity" class="nav-link" data-i18n="nav.rarity">Rarity</a></li>
-    </ul>
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <h2 class="sidebar-main-title"><i class="fas fa-tools"></i> <span data-i18n="sidebar.title">Controls</span></h2>
+        </div>
+        <div class="sidebar-sticky-content styled-scrollbar">
+            <div class="sidebar-section overlay-controls">
+                <h3 class="sidebar-section-title" data-i18n="sidebar.overlayControls"><i class="fas fa-desktop"></i> Overlay</h3>
+                <button id="btn-start" class="app-button secondary full-width">
+                    <i class="fas fa-play"></i> <span data-i18n="btn.startRuffle">Start Ruffle</span>
+                </button>
+                <button id="btn-open" class="app-button secondary full-width">
+                    <i class="fas fa-external-link-alt"></i> <span data-i18n="btn.openCase">Open Case</span>
+                </button>
+                <button id="btn-roll" class="app-button secondary full-width">
+                    <i class="fas fa-dice"></i> <span data-i18n="btn.rollCase">Roll Case</span>
+                </button>
+            </div>
 
-  <!-- Блок с кнопками управления оверлеем -->
-  <div class="overlay-sidebar-buttons">
-    <button id="btn-start" class="btn">Start ruffle</button>
-    <button id="btn-open" class="btn">Open case</button>
-    <button id="btn-roll" class="btn">Roll case</button>
-  </div>
+            <div class="sidebar-section status-info">
+                <h3 class="sidebar-section-title" data-i18n="sidebar.statusInfo"><i class="fas fa-info-circle"></i> Status</h3>
+                <div id="participantCount" class="status-item">
+                    <span class="status-label" data-i18n="label.participants"><i class="fas fa-users"></i> Participants:</span>
+                    <span class="status-value pc-dynamic">0</span>
+                </div>
+                <div id="skinDropStatus" class="status-item">
+                    <span class="status-label" data-i18n="label.dropModeStatus"><i class="fas fa-box-open"></i> Drop Mode:</span>
+                    <span class="status-value sdm-dynamic">
+                        <span data-i18n-value-default="label.unknown" data-i18n-value-default-key="label.unknown">Unknown</span>
+                    </span>
+                </div>
+            </div>
 
-  <!-- Элемент для отображения количества участников -->
-  <div id="participantCount" class="participant-count">
-    <span class="pc-static">Количество участников: </span><span class="pc-dynamic">0</span>
-  </div>
+            </div>
+        <div class="sidebar-footer">
+             <p>&copy; 2024 Settings Panel</p>
+        </div>
+    </aside>
 
-  <!-- Элемент для отображения статуса Skin Drop Mode -->
-  <div id="skinDropStatus" class="skin-drop-status">
-    <span class="sdm-static">Skin Drop Mode: </span><span class="sdm-dynamic">Unknown</span>
-  </div>
+    <div class="main-container">
+        <header class="main-header card-style">
+            <h1><i class="fas fa-cogs"></i> <span data-i18n="header.settings">Application Settings</span></h1>
+            <div id="globalStatusMessage" class="global-status-message">Message</div>
+            <div class="header-action-buttons">
+                <button type="button" id="openOverlaysBtn" class="app-button secondary" onclick="window.location.href='https://galaxytimer-production.up.railway.app/'">
+                    <i class="fas fa-layer-group"></i> <span data-i18n="btn.openOverlays">Overlays</span>
+                </button>
+                <button type="submit" form="settingsForm" id="saveAllSettingsBtn" class="app-button primary">
+                    <i class="fas fa-save"></i> <span data-i18n="btn.saveAllSettings">Save Settings</span>
+                </button>
+            </div>
+        </header>
 
-    <!-- Переключатель языка -->
-    <div class="language-switcher">
-      <button class="lang-btn" data-lang="en">ENG</button>
-      <button class="lang-btn" data-lang="uk">УКР</button>
-      <button class="lang-btn" data-lang="ru">РУ</button>
+        <main class="main-content styled-scrollbar">
+            <form id="settingsForm" novalidate>
+                <section class="settings-block card-style section-general">
+                    <h2 class="settings-block-title" data-i18n="section.generalParams"><i class="fas fa-cog"></i> General Parameters</h2>
+                    <div class="settings-form-grid">
+                        <div class="form-group">
+                            <label for="chatDelay" data-i18n="label.chatDelay"><i class="far fa-clock"></i> Chat Delay (sec)</label>
+                            <input type="number" id="chatDelay" class="header-input" min="0" value="130" required>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="settings-block card-style section-drop-mode">
+                    <h2 class="settings-block-title" data-i18n="section.dropMode"><i class="fas fa-box"></i> Skin Drop Mode</h2>
+                    <div class="settings-form-grid">
+                        <div class="form-group">
+                            <label for="dropMode" data-i18n="label.selectDropMode"><i class="fas fa-sliders-h"></i> Mode</label>
+                            <select id="dropMode" class="control-select styled-select">
+                                <option value="random" data-i18n="label.random">Random by Rarity</option>
+                                <option value="preset" data-i18n="label.preset">Preset Skin</option>
+                            </select>
+                        </div>
+                        <div id="presetSkinSelect" class="form-group" style="display:none;">
+                            <label for="fixedSkin" data-i18n="label.fixedSkin"><i class="fas fa-crosshairs"></i> Select Preset Skin</label>
+                            <select id="fixedSkin" class="control-select styled-select">
+                            </select>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="settings-block card-style section-rarity">
+                    <h2 class="settings-block-title" data-i18n="section.rarity"><i class="fas fa-percentage"></i> Drop Rarity (%)</h2>
+                    <div class="settings-rarity-grid">
+                        <div class="form-group">
+                            <label for="chanceMilSpec" data-i18n="label.chanceMilSpec">Mil-Spec</label>
+                            <div class="input-with-unit-new">
+                                <input type="number" id="chanceMilSpec" class="header-input" step="0.001" value="79.923" required>
+                                <span class="unit-span">%</span>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="chanceRestricted" data-i18n="label.chanceRestricted">Restricted</label>
+                            <div class="input-with-unit-new">
+                                <input type="number" id="chanceRestricted" class="header-input" step="0.001" value="15.984" required>
+                                <span class="unit-span">%</span>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="chanceClassified" data-i18n="label.chanceClassified">Classified</label>
+                            <div class="input-with-unit-new">
+                                <input type="number" id="chanceClassified" class="header-input" step="0.001" value="3.197" required>
+                                <span class="unit-span">%</span>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="chanceCovert" data-i18n="label.chanceCovert">Covert</label>
+                            <div class="input-with-unit-new">
+                                <input type="number" id="chanceCovert" class="header-input" step="0.001" value="0.639" required>
+                                <span class="unit-span">%</span>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="chanceRareSpecialItems" data-i18n="label.chanceRareSpecial">Rare Special</label>
+                            <div class="input-with-unit-new">
+                                <input type="number" id="chanceRareSpecialItems" class="header-input" step="0.001" value="0.256" required>
+                                <span class="unit-span">%</span>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="settings-block card-style section-skins">
+                    <div class="section-header">
+                        <h2 class="settings-block-title no-border" data-i18n="section.skinsManagement"><i class="fas fa-images"></i> Skins Management</h2>
+                        <button type="button" id="addSkinBtn" class="app-button primary">
+                            <i class="fas fa-plus"></i> <span data-i18n="btn.addSkin">Add Skin</span>
+                        </button>
+                    </div>
+                    <div class="table-wrapper styled-scrollbar">
+                        <table id="skinsTable">
+                            <thead>
+                                <tr>
+                                    <th class="col-type" data-i18n="table.col.weaponType">Weapon Type</th>
+                                    <th class="col-name" data-i18n="table.col.name">Name</th>
+                                    <th class="col-image" data-i18n="table.col.image">Image</th>
+                                    <th class="col-rarity" data-i18n="table.col.rarity">Rarity</th>
+                                    <th class="col-actions" data-i18n="table.col.actions">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </section>
+            </form>
+        </main>
     </div>
-  </aside>
 
-  <script>
-function updateParticipantCount() {
-  fetch('/participants-count')
-    .then(response => response.json())
-    .then(data => {
-      document.getElementById('participantCount').innerHTML =
-        '<span class="pc-static">Количество участников: </span>' +
-        '<span class="pc-dynamic">' + data.count + '</span>';
-    })
-    .catch(err => console.error('Ошибка получения количества участников:', err));
-}
+<script>
+    (()=>{
+        const rarityColors = {
+            'Mil-Spec':'#4B58E3','Restricted':'#AF5DE5',
+            'Classified':'#F92177','Covert':'#E92E2E','Rare Special Items':'#EFA640'
+        };
 
-  
-    // Вызываем функцию сразу и затем раз в 5 секунд
-    updateParticipantCount();
-    setInterval(updateParticipantCount, 5000);
-  </script>
-  
+        const translations = {
+            en: {
+                "sidebar.title": "Controls",
+                "header.settings": "Application Settings",
+                "btn.saveAllSettings": "Save Settings",
+                "btn.openOverlays": "Overlays", 
+                "sidebar.overlayControls": "Overlay", "btn.startRuffle": "Start Ruffle", "btn.openCase": "Open Case", "btn.rollCase": "Roll Case",
+                "sidebar.statusInfo": "Status", "label.participants": "Participants:", "label.dropModeStatus": "Drop Mode:", "label.unknown": "Unknown",
+                "label.weaponTypeShort": "Type:", "label.skinNameShort": "Skin:",
+                "sidebar.language": "Language", // Эта строка перевода может остаться, если где-то еще используется ключ, но сам блок убран
+                "section.generalParams": "General Parameters", "label.chatDelay": "Chat Delay (sec)",
+                "section.dropMode": "Skin Drop Mode", "label.selectDropMode": "Mode", "label.random": "Random by Rarity", "label.preset": "Preset Skin",
+                "label.fixedSkin": "Select Preset Skin", "label.selectSkinPlaceholder": "Select a skin...", "label.noSkinSelected": "No skin selected",
+                "section.rarity": "Drop Rarity (%)",
+                "label.chanceMilSpec": "Mil-Spec", "label.chanceRestricted": "Restricted", "label.chanceClassified": "Classified", "label.chanceCovert": "Covert", "label.chanceRareSpecial": "Rare Special",
+                "section.skinsManagement": "Skins Management", "btn.addSkin": "Add Skin",
+                "table.col.weaponType": "Weapon Type", "table.col.name": "Name", "table.col.image": "Image", "table.col.rarity": "Rarity", "table.col.actions": "Actions",
+                "label.chooseFile": "Choose...", "label.uploading": "Uploading...", "label.uploadFailed": "Upload failed", "label.notAnImage": "Not an image file",
+                "error.invalidRarity": "Error: Invalid rarity chances. For 'Random by Rarity' mode, ensure all chances are numbers >= 0 and sum to 100%.",
+                "error.presetNoSkin": "Error: Preset mode selected, but no skin is chosen from the list.",
+                "error.skinNameRequired": "Error: Skin name is required for all entries in the table.",
+                "btn.saving": "Saving...", "success.settingsSaved": "Settings saved successfully!", "btn.saved": "Saved!",
+                "error.savingFailed": "Error saving settings", "btn.saveError": "Error!",
+                "error.loadingSettings": "Error loading settings", "warning.emptySettings": "Warning: Received empty settings. Using defaults."
+            },
+            ru: {
+                "sidebar.title": "Управление",
+                "header.settings": "Настройки Приложения",
+                "btn.saveAllSettings": "Сохранить настройки",
+                "btn.openOverlays": "Оверлеи",
+                "sidebar.overlayControls": "Оверлей", "btn.startRuffle": "Start Ruffle", "btn.openCase": "Open Case", "btn.rollCase": "Roll Case",
+                "sidebar.statusInfo": "Статус", "label.participants": "Участники:", "label.dropModeStatus": "Режим дропа:", "label.unknown": "Неизвестно",
+                "label.weaponTypeShort": "Тип:", "label.skinNameShort": "Скин:",
+                "sidebar.language": "Язык",
+                "section.generalParams": "Общие параметры", "label.chatDelay": "Задержка чата (сек)",
+                "section.dropMode": "Режим выпадения скинов", "label.selectDropMode": "Режим", "label.random": "Случайный по редкости", "label.preset": "Фиксированный скин",
+                "label.fixedSkin": "Выбрать скин для фикс. дропа", "label.selectSkinPlaceholder": "Выберите скин...", "label.noSkinSelected": "Скин не выбран",
+                "section.rarity": "Шансы редкости (%)",
+                "label.chanceMilSpec": "Mil-Spec", "label.chanceRestricted": "Restricted", "label.chanceClassified": "Classified", "label.chanceCovert": "Covert", "label.chanceRareSpecial": "Rare Special",
+                "section.skinsManagement": "Управление скинами", "btn.addSkin": "Добавить скин",
+                "table.col.weaponType": "Тип оружия", "table.col.name": "Название", "table.col.image": "Изображение", "table.col.rarity": "Редкость", "table.col.actions": "Действия",
+                "label.chooseFile": "Выбрать...", "label.uploading": "Загрузка...", "label.uploadFailed": "Ошибка загрузки", "label.notAnImage": "Не изображение",
+                "error.invalidRarity": "Ошибка: Некорректные шансы редкости. Для режима \"Случайный по редкости\" убедитесь, что все шансы - числа >= 0 и в сумме дают 100%.",
+                "error.presetNoSkin": "Ошибка: Выбран режим \"Фиксированный скин\", но скин не выбран из списка.",
+                "error.skinNameRequired": "Ошибка: Имя скина обязательно для всех записей в таблице.",
+                "btn.saving": "Сохранение...", "success.settingsSaved": "Настройки успешно сохранены!", "btn.saved": "Сохранено!",
+                "error.savingFailed": "Ошибка сохранения настроек", "btn.saveError": "Ошибка!",
+                "error.loadingSettings": "Ошибка загрузки настроек", "warning.emptySettings": "Внимание: Получены пустые настройки. Используются значения по умолчанию."
+            },
+            uk: {
+                "sidebar.title": "Керування",
+                "header.settings": "Налаштування Додатку",
+                "btn.saveAllSettings": "Зберегти налаштування",
+                "btn.openOverlays": "Оверлеї", 
+                "sidebar.overlayControls": "Оверлей", "btn.startRuffle": "Start Ruffle", "btn.openCase": "Open Case", "btn.rollCase": "Roll Case",
+                "sidebar.statusInfo": "Статус", "label.participants": "Учасники:", "label.dropModeStatus": "Режим дропу:", "label.unknown": "Невідомо",
+                "label.weaponTypeShort": "Тип:", "label.skinNameShort": "Скін:",
+                "sidebar.language": "Мова",
+                "section.generalParams": "Загальні параметри", "label.chatDelay": "Затримка чату (сек)",
+                "section.dropMode": "Режим випадіння скінів", "label.selectDropMode": "Режим", "label.random": "Випадковий за рідкістю", "label.preset": "Фіксований скін",
+                "label.fixedSkin": "Обрати скін для фікс. дропу", "label.selectSkinPlaceholder": "Оберіть скін...", "label.noSkinSelected": "Скін не обрано",
+                "section.rarity": "Шанси рідкості (%)",
+                "label.chanceMilSpec": "Mil-Spec", "label.chanceRestricted": "Restricted", "label.chanceClassified": "Classified", "label.chanceCovert": "Covert", "label.chanceRareSpecial": "Rare Special",
+                "section.skinsManagement": "Керування скінами", "btn.addSkin": "Додати скін",
+                "table.col.weaponType": "Тип зброї", "table.col.name": "Назва", "table.col.image": "Зображення", "table.col.rarity": "Рідкість", "table.col.actions": "Дії",
+                "label.chooseFile": "Обрати...", "label.uploading": "Завантаження...", "label.uploadFailed": "Помилка завантаження", "label.notAnImage": "Не зображення",
+                "error.invalidRarity": "Помилка: Некоректні шанси рідкості. Для режиму \"Випадковий за рідкістю\" переконайтеся, що всі шанси - числа >= 0 і в сумі дають 100%.",
+                "error.presetNoSkin": "Помилка: Обрано режим \"Фіксований скін\", але скін не обрано зі списку.",
+                "error.skinNameRequired": "Помилка: Ім'я скіна є обов'язковим для всіх записів у таблиці.",
+                "btn.saving": "Збереження...", "success.settingsSaved": "Налаштування успішно збережено!", "btn.saved": "Збережено!",
+                "error.savingFailed": "Помилка збереження налаштувань", "btn.saveError": "Помилка!",
+                "error.loadingSettings": "Помилка завантаження налаштувань", "warning.emptySettings": "Увага: Отримано порожні налаштування. Використовуються значення за замовчуванням."
+            }
+        };
+        let currentLang = localStorage.getItem('appLanguage') || 'en'; 
 
-  <script>
-    document.getElementById('btn-start').addEventListener('click', () => {
-      fetch('/start-collection', { method: 'POST' })
-        .then(res => res.json())
-        .then(data => console.log(data))
-        .catch(err => console.error(err));
-    });
-  
-    document.getElementById('btn-open').addEventListener('click', () => {
-      fetch('/open-overlay', { method: 'POST' })
-        .then(res => res.json())
-        .then(data => console.log(data))
-        .catch(err => console.error(err));
-    });
-  
-    document.getElementById('btn-roll').addEventListener('click', () => {
-      fetch('/roll', { method: 'POST' })
-        .then(res => res.json())
-        .then(data => console.log(data))
-        .catch(err => console.error(err));
-    });
-  </script>
-  
-  <!-- Основной контент страницы настроек -->
-  <main class="main-content">
-    <form id="settingsForm">
-      <!-- Настройки бота -->
-      <section class="section" id="bot-settings">
-        <h2 data-i18n="section.botSettings">Bot Settings</h2>
-        <div class="form-group">
-          <label for="botUsername" data-i18n="label.botUsername">BOT_USERNAME</label>
-          <input type="text" id="botUsername" name="botUsername" required>
-        </div>
-        <div class="form-group">
-          <label for="botOAuth" data-i18n="label.botOAuth">BOT_OAUTH</label>
-          <input type="text" id="botOAuth" name="botOAuth" required>
-        </div>
-        <div class="form-group">
-          <label for="channelName" data-i18n="label.channelName">CHANNEL_NAME</label>
-          <input type="text" id="channelName" name="channelName" required>
-        </div>
-        <div class="form-group">
-          <label for="chatDelay" data-i18n="label.chatDelay">Chat Delay (sec.)</label>
-          <input type="number" id="chatDelay" name="chatDelay" min="0" value="130" required>
-        </div>
-      </section>
-      
-       <!-- Открыть страницу со скроллом кейсов -->
-      <button type="button" class="btn scroll-case" onclick="window.open('/index.html','_blank')">
-        Открыть страницу со скроллом кейсов
-      </button>
-
-      <!-- Секция скинов -->
-      <section class="section" id="skins">
-        <h2 data-i18n="section.skins">Skins</h2>
-        <div class="table-wrapper">
-          <table id="skinsTable">
-            <thead>
-              <tr>
-                <th>Name</th>
-                <th>Weapon Type</th>
-                <th>Image (File)</th>
-                <th>Rarity</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              <!-- Динамические строки будут добавляться сюда -->
-            </tbody>
-          </table>
-        </div>
-        <button type="button" id="addSkinBtn" class="btn" data-i18n="btn.addSkin">Add Skin</button>
-      </section>
-      
-      <!-- Режим выпадения скина -->
-      <section class="section" id="drop-mode">
-        <h2 data-i18n="section.dropMode">Skin Drop Mode</h2>
-        <div class="form-group">
-          <label for="dropMode" data-i18n="label.dropMode">Select Mode</label>
-          <select id="dropMode" name="dropMode">
-            <option value="random">Random by Rarity</option>
-            <option value="preset">Preset Skin</option>
-          </select>
-        </div>
-        <div class="form-group" id="presetSkinSelect" style="display: none;">
-          <label for="fixedSkin" data-i18n="label.fixedSkin">Select Skin for Drop</label>
-          <select id="fixedSkin" name="fixedSkin">
-            <!-- Динамические опции -->
-          </select>
-        </div>
-      </section>
-      
-
-
-      <!-- Шансы выпадения по редкости -->
-      <section class="section" id="rarity">
-        <h2 data-i18n="section.rarity">Drop Rarity</h2>
-        <div class="form-group">
-          <label for="chanceMilSpec" data-i18n="label.chanceMilSpec">Mil-Spec (%)</label>
-          <input type="number" id="chanceMilSpec" name="chanceMilSpec" value="79.9" step="0.1" required>
-        </div>
-        <div class="form-group">
-          <label for="chanceRestricted" data-i18n="label.chanceRestricted">Restricted (%)</label>
-          <input type="number" id="chanceRestricted" name="chanceRestricted" value="16" step="0.1" required>
-        </div>
-        <div class="form-group">
-          <label for="chanceClassified" data-i18n="label.chanceClassified">Classified (%)</label>
-          <input type="number" id="chanceClassified" name="chanceClassified" value="3.2" step="0.1" required>
-        </div>
-        <div class="form-group">
-          <label for="chanceCovert" data-i18n="label.chanceCovert">Covert (%)</label>
-          <input type="number" id="chanceCovert" name="chanceCovert" value="0.64" step="0.01" required>
-        </div>
-        <div class="form-group">
-          <label for="chanceRareSpecial" data-i18n="label.chanceRareSpecial">Rare Special Items (%)</label>
-          <input type="number" id="chanceRareSpecial" name="chanceRareSpecial" value="0.125" step="0.001" required>
-        </div>
-      </section>
-      
-      <!-- Кнопка сохранения настроек -->
-      <section class="section submit-section">
-        <button type="submit" class="btn" data-i18n="btn.saveSettings">Save Settings</button>
-      </section>
-    </form>
-    
-    <div class="status-message" id="message"></div>
-    <div id="currentConfig">
-      <h3>Current Configuration</h3>
-      <pre id="configPreview"></pre>
-    </div>
-  </main>
-
-  <script>
-    let currentLanguage = "en";
-    const translations = {
-      ru: {
-        sidebarHeading: "Настройки",
-        nav: { bot: "Бот", skins: "Скины", dropMode: "Выпадение", rarity: "Редкость" },
-        section: { botSettings: "Настройки бота", skins: "Скины", dropMode: "Режим выпадения скина", rarity: "Редкость выпадения" },
-        label: {
-          botUsername: "BOT_USERNAME",
-          botOAuth: "BOT_OAUTH",
-          channelName: "CHANNEL_NAME",
-          chatDelay: "Delay отправки (сек.)",
-          dropMode: "Выберите режим",
-          fixedSkin: "Выберите скин для выпадения",
-          chanceMilSpec: "Mil-Spec (%)",
-          chanceRestricted: "Restricted (%)",
-          chanceClassified: "Classified (%)",
-          chanceCovert: "Covert (%)",
-          chanceRareSpecial: "Rare Special Items (%)"
-        },
-        btn: { addSkin: "Добавить скин", saveSettings: "Сохранить настройки" },
-        previewTitle: "Текущая конфигурация",
-        error: {
-          settingsLoad: "Ошибка загрузки настроек",
-          settingsSave: "Ошибка сохранения настроек",
-          raritySum: "Ошибка: Сумма процентов выпадения должна быть равна 100%. Сейчас: "
+        function getTranslation(key, lang = currentLang) {
+            return translations[lang]?.[key] || translations['en']?.[key] || key;
         }
-      },
-      en: {
-        sidebarHeading: "Settings",
-        nav: { bot: "Bot", skins: "Skins", dropMode: "Drop Mode", rarity: "Rarity" },
-        section: { botSettings: "Bot Settings", skins: "Skins", dropMode: "Skin Drop Mode", rarity: "Drop Rarity" },
-        label: {
-          botUsername: "BOT_USERNAME",
-          botOAuth: "BOT_OAUTH",
-          channelName: "CHANNEL_NAME",
-          chatDelay: "Chat Delay (sec.)",
-          dropMode: "Select mode",
-          fixedSkin: "Select skin for drop",
-          chanceMilSpec: "Mil-Spec (%)",
-          chanceRestricted: "Restricted (%)",
-          chanceClassified: "Classified (%)",
-          chanceCovert: "Covert (%)",
-          chanceRareSpecial: "Rare Special Items (%)"
-        },
-        btn: { addSkin: "Add Skin", saveSettings: "Save Settings" },
-        previewTitle: "Current Configuration",
-        error: {
-          settingsLoad: "Error loading settings",
-          settingsSave: "Error saving settings",
-          raritySum: "Error: The sum of drop percentages must equal 100%. Current: "
-        }
-      },
-      uk: {
-        sidebarHeading: "Налаштування",
-        nav: { bot: "Бот", skins: "Скіни", dropMode: "Випадання", rarity: "Рідкість" },
-        section: { botSettings: "Налаштування бота", skins: "Скіни", dropMode: "Режим випадання скіна", rarity: "Рідкість випадання" },
-        label: {
-          botUsername: "BOT_USERNAME",
-          botOAuth: "BOT_OAUTH",
-          channelName: "CHANNEL_NAME",
-          chatDelay: "Затримка чату (сек.)",
-          dropMode: "Виберіть режим",
-          fixedSkin: "Виберіть скін для випадання",
-          chanceMilSpec: "Mil-Spec (%)",
-          chanceRestricted: "Restricted (%)",
-          chanceClassified: "Classified (%)",
-          chanceCovert: "Covert (%)",
-          chanceRareSpecial: "Rare Special Items (%)"
-        },
-        btn: { addSkin: "Додати скін", saveSettings: "Зберегти налаштування" },
-        previewTitle: "Поточна конфігурація",
-        error: {
-          settingsLoad: "Помилка завантаження налаштувань",
-          settingsSave: "Помилка збереження налаштувань",
-          raritySum: "Помилка: Сума відсотків випадання має дорівнювати 100%. Зараз: "
-        }
-      }
-    };
 
-    function getTranslation(key, lang) {
-      return key.split('.').reduce((obj, k) => (obj || {})[k], translations[lang]) || key;
-    }
-    function updateTranslations() {
-      document.querySelectorAll("[data-i18n]").forEach(el => {
-        const key = el.getAttribute("data-i18n");
-        el.textContent = getTranslation(key, currentLanguage);
-      });
-      document.title = getTranslation("sidebarHeading", currentLanguage);
-    }
-    document.querySelectorAll(".lang-btn").forEach(btn => {
-      btn.addEventListener("click", () => {
-        currentLanguage = btn.getAttribute("data-lang");
-        updateTranslations();
-        updatePreview();
-      });
-    });
+        function setLanguage(lang) {
+            currentLang = lang;
+            localStorage.setItem('appLanguage', lang);
+            document.documentElement.lang = lang; 
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.dataset.i18n;
+                const translation = getTranslation(key, lang);
+                let textContainer = el;
+                if (el.childNodes.length === 1 && el.firstChild.nodeType === Node.ELEMENT_NODE && el.firstChild.tagName === 'SPAN' && !el.firstChild.hasAttributes()) {
+                    textContainer = el.firstChild;
+                } else {
+                    let targetNode = null;
+                    if (el.tagName === 'BUTTON') {
+                        targetNode = Array.from(el.childNodes).find(node => node.tagName === 'SPAN' && !node.hasAttributes());
+                        if (!targetNode) {
+                            for (let i = el.childNodes.length - 1; i >= 0; i--) {
+                                if (el.childNodes[i].nodeType === Node.TEXT_NODE && el.childNodes[i].textContent.trim() !== '') {
+                                    targetNode = el.childNodes[i];
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    if (targetNode) {
+                        textContainer = targetNode;
+                    } else { 
+                        const simpleSpan = Array.from(el.childNodes).find(node => node.tagName === 'SPAN' && !node.hasAttributes());
+                        if (simpleSpan) textContainer = simpleSpan;
+                    }
+                }
 
-    const rarityColors = {
-      "Mil-Spec": "#4B58E3",
-      "Restricted": "#AF5DE5",
-      "Classified": "#F92177",
-      "Covert": "#E92E2E",
-      "Rare Special Items": "#EFA640"
-    };
-    function updateRarityColor(selectElement) {
-      const color = rarityColors[selectElement.value] || '#000';
-      const indicator = selectElement.parentElement.querySelector('.rarity-color');
-      if (indicator) {
-        indicator.style.backgroundColor = color;
-      }
-    }
-    function updateFixedSkinOptions() {
-      const fixedSkinSelect = document.getElementById('fixedSkin');
-      const currentValue = fixedSkinSelect.value;
-      fixedSkinSelect.innerHTML = '';
-      const rows = document.querySelectorAll('#skinsTable tbody tr');
-      rows.forEach((row, index) => {
-        const skinName = row.querySelector('.skinName').value;
-        const option = document.createElement('option');
-        option.value = index;
-        option.textContent = skinName;
-        fixedSkinSelect.appendChild(option);
-      });
-      if (currentValue !== undefined && fixedSkinSelect.querySelector(`option[value="${currentValue}"]`)) {
-        fixedSkinSelect.value = currentValue;
-      }
-    }
-    async function uploadFile(file) {
-      const formData = new FormData();
-      formData.append('file', file);
-      const resp = await fetch('/upload-skin', { method: 'POST', body: formData });
-      if (!resp.ok) throw new Error('File upload failed');
-      return await resp.json();
-    }
-    function buildConfigObject() {
-      const config = {
-        BOT_USERNAME: document.getElementById('botUsername').value,
-        BOT_OAUTH: document.getElementById('botOAuth').value,
-        CHANNEL_NAME: document.getElementById('channelName').value,
-        chatDelay: document.getElementById('chatDelay').value,
-        dropMode: document.getElementById('dropMode').value,
-        fixedSkin: null,
-        skins: []
-      };
-      const rows = document.querySelectorAll('#skinsTable tbody tr');
-      rows.forEach(row => {
-        const nameInput = row.querySelector('.skinName');
-        const weaponInput = row.querySelector('.weaponType');
-        const fileInput = row.querySelector('.skinImage');
-        const raritySelect = row.querySelector('.skinRarity');
 
-        const filePath = fileInput.dataset.filePath || '';
-        const imageName = filePath ? filePath.split('/').pop() : '';
-
-        config.skins.push({
-          name: nameInput.value,
-          weapontype: weaponInput.value || '',
-          image: filePath,
-          imageName,
-          rarity: raritySelect.value
-        });
-      });
-      if (config.dropMode === 'preset') {
-        const fixedIndex = document.getElementById('fixedSkin').value;
-        config.fixedSkin = config.skins[fixedIndex] || null;
-      }
-      config.rarityChances = {
-        "Mil-Spec": parseFloat(document.getElementById('chanceMilSpec').value),
-        "Restricted": parseFloat(document.getElementById('chanceRestricted').value),
-        "Classified": parseFloat(document.getElementById('chanceClassified').value),
-        "Covert": parseFloat(document.getElementById('chanceCovert').value),
-        "Rare Special Items": parseFloat(document.getElementById('chanceRareSpecial').value)
-      };
-      return config;
-    }
-    function updatePreview() {
-      const config = buildConfigObject();
-      const sum = Object.values(config.rarityChances).reduce((a, b) => a + b, 0);
-      const messageEl = document.getElementById('message');
-      if (Math.abs(sum - 100) > 0.01) {
-        messageEl.textContent = getTranslation("error.raritySum", currentLanguage) + sum.toFixed(2) + "%.";
-        messageEl.style.color = "red";
-      } else {
-        messageEl.textContent = "";
-      }
-      document.getElementById('configPreview').textContent = JSON.stringify(config, null, 2);
-      updateFixedSkinOptions();
-    }
-    function saveSettings() {
-      const config = buildConfigObject();
-      const sum = Object.values(config.rarityChances).reduce((a, b) => a + b, 0);
-      const messageEl = document.getElementById('message');
-      if (Math.abs(sum - 100) > 0.01) {
-        messageEl.textContent = getTranslation("error.raritySum", currentLanguage) + sum.toFixed(2) + "%.";
-        messageEl.style.color = "red";
-        return;
-      } else {
-        messageEl.textContent = "";
-      }
-      document.getElementById('configPreview').textContent = JSON.stringify(config, null, 2);
-
-      fetch("/save-settings", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(config)
-      })
-        .then(r => r.json())
-        .then(data => {
-          document.getElementById("message").textContent = data.message;
-          document.getElementById("message").style.color = "inherit";
-        })
-        .catch(err => {
-          document.getElementById("message").textContent = getTranslation("error.settingsSave", currentLanguage);
-          document.getElementById("message").style.color = "red";
-          console.error(err);
-        });
-    }
-    function addSkinRow(skin = {}) {
-      const tbody = document.querySelector('#skinsTable tbody');
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td>
-          <input type="text" class="skinName" value="${skin.name || ''}" placeholder="Name" required>
-        </td>
-        <td>
-          <input type="text" class="weaponType" value="${skin.weapontype || ''}" placeholder="Weapon Type">
-        </td>
-        <td>
-          <input type="file" class="skinImage" accept="image/*">
-          <span class="fileName">${skin.image ? skin.image.split('/').pop() : ''}</span>
-        </td>
-        <td>
-          <div class="rarity-container">
-            <select class="skinRarity" required>
-              <option value="Mil-Spec" ${skin.rarity === 'Mil-Spec' ? 'selected' : ''}>Mil-Spec</option>
-              <option value="Restricted" ${skin.rarity === 'Restricted' ? 'selected' : ''}>Restricted</option>
-              <option value="Classified" ${skin.rarity === 'Classified' ? 'selected' : ''}>Classified</option>
-              <option value="Covert" ${skin.rarity === 'Covert' ? 'selected' : ''}>Covert</option>
-              <option value="Rare Special Items" ${skin.rarity === 'Rare Special Items' ? 'selected' : ''}>Rare Special Items</option>
-            </select>
-            <span class="rarity-color"></span>
-          </div>
-        </td>
-        <td>
-          <button type="button" class="removeSkinBtn">Delete</button>
-        </td>
-      `;
-      tbody.appendChild(tr);
-
-      const nameInput = tr.querySelector('.skinName');
-      const weaponInput = tr.querySelector('.weaponType');
-      const fileInput = tr.querySelector('.skinImage');
-      const fileNameSpan = tr.querySelector('.fileName');
-      const raritySelect = tr.querySelector('.skinRarity');
-      const removeBtn = tr.querySelector('.removeSkinBtn');
-
-      if (skin.image) {
-        fileInput.dataset.filePath = skin.image;
-      }
-
-      nameInput.addEventListener('input', updatePreview);
-      weaponInput.addEventListener('input', updatePreview);
-
-      fileInput.addEventListener('change', async () => {
-        if (fileInput.files && fileInput.files[0]) {
-          try {
-            const result = await uploadFile(fileInput.files[0]);
-            fileInput.dataset.filePath = result.path;
-            fileNameSpan.textContent = result.path.split('/').pop();
-            updatePreview();
-            saveSettings();
-          } catch (e) {
-            console.error('File upload error:', e);
-          }
-        } else {
-          fileInput.dataset.filePath = '';
-          fileNameSpan.textContent = '';
-          updatePreview();
-          saveSettings();
-        }
-      });
-
-      raritySelect.addEventListener('change', function() {
-        updateRarityColor(raritySelect);
-        updatePreview();
-      });
-      updateRarityColor(raritySelect);
-
-      removeBtn.addEventListener('click', function() {
-        tr.remove();
-        updatePreview();
-      });
-
-      updatePreview();
-    }
-
-    function updateActiveNav() { /* Реализуйте при необходимости */ }
-    window.addEventListener("scroll", updateActiveNav);
-    document.querySelectorAll(".nav-links li a").forEach(link => {
-      link.addEventListener("click", () => {
-        setTimeout(updateActiveNav, 100);
-      });
-    });
-
-    // При загрузке страницы – получаем настройки с сервера и заполняем форму
-    document.addEventListener("DOMContentLoaded", function() {
-      fetch("/get-settings")
-        .then(r => r.json())
-        .then(data => {
-          document.getElementById("botUsername").value = data.BOT_USERNAME || "";
-          document.getElementById("botOAuth").value = data.BOT_OAUTH || "";
-          document.getElementById("channelName").value = data.CHANNEL_NAME || "";
-          document.getElementById("chatDelay").value = data.chatDelay || 130;
-
-          document.getElementById("dropMode").value = data.dropMode || "random";
-          if (data.dropMode === "preset") {
-            document.getElementById("presetSkinSelect").style.display = "block";
-          }
-
-          if (data.skins && Array.isArray(data.skins)) {
-            data.skins.forEach(skin => {
-              addSkinRow({
-                name: skin.name,
-                weapontype: skin.weapontype || "",
-                rarity: skin.rarity,
-                image: skin.image || ""
-              });
+                if (el.tagName === 'INPUT' && (el.type === 'submit' || el.type === 'button') ) {
+                        el.value = translation;
+                } else if (el.tagName === 'BUTTON') {
+                    if (textContainer.nodeType === Node.TEXT_NODE) {
+                        const previousSibling = textContainer.previousSibling;
+                        if (previousSibling && previousSibling.nodeType === Node.ELEMENT_NODE && (previousSibling.tagName === 'I' || previousSibling.querySelector('i'))) {
+                                textContainer.textContent = ` ${translation}`;
+                        } else {
+                                textContainer.textContent = translation;
+                        }
+                    } else if (textContainer !== el && textContainer.tagName === 'SPAN') { 
+                        textContainer.textContent = translation;
+                    } else if (el.title && (el.dataset.i18nTitleKey === key || el.dataset.i18n === key)) {
+                        el.title = translation;
+                    } else { 
+                        let mainTextSpan = el.querySelector('span:not([class])'); 
+                        if (mainTextSpan) {
+                            mainTextSpan.textContent = translation;
+                        } else {
+                            let textNode = Array.from(el.childNodes).reverse().find(node => node.nodeType === Node.TEXT_NODE && node.textContent.trim() !== '');
+                            if (textNode) { textNode.textContent = ` ${translation}`; } 
+                            else if (textContainer === el && !el.querySelector('i')) { 
+                                el.textContent = translation;
+                            }
+                        }
+                    }
+                } else if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
+                    if (el.placeholder && (el.dataset.i18nPlaceholderKey === key || el.dataset.i18n === key)) {
+                            el.placeholder = translation;
+                    }
+                } else {
+                    textContainer.textContent = translation;
+                }
             });
-          }
+            document.querySelectorAll('[data-i18n-value-default-key]').forEach(el => {
+                const valueDefaultKey = el.dataset.i18nValueDefaultKey;
+                const currentText = el.textContent.trim();
+                const isDefault = ['en', 'ru', 'uk'].some(lng => currentText === (translations[lng]?.[valueDefaultKey]));
 
-          if (data.rarityChances) {
-            document.getElementById("chanceMilSpec").value = data.rarityChances["Mil-Spec"] || 79.9;
-            document.getElementById("chanceRestricted").value = data.rarityChances["Restricted"] || 16;
-            document.getElementById("chanceClassified").value = data.rarityChances["Classified"] || 3.2;
-            document.getElementById("chanceCovert").value = data.rarityChances["Covert"] || 0.64;
-            document.getElementById("chanceRareSpecial").value = data.rarityChances["Rare Special Items"] || 0.125;
-          }
+                if (isDefault || currentText === el.dataset.i18nValueDefault) { 
+                    el.textContent = getTranslation(valueDefaultKey, lang);
+                }
+            });
 
-          updatePreview();
-          updateActiveNav();
-          updateTranslations();
+            updateSidebarDropStatus();
+            updateFixedSkinOptions();
+             document.querySelectorAll('#skinsTable .fileName').forEach(fn => {
+                if (["Choose...", "Выбрать...", "Обрати..."].includes(fn.textContent.trim())) {
+                    fn.textContent = getTranslation("label.chooseFile");
+                }
+            });
+        }
 
-     
-// Формируем статическую и динамическую части
-let statusStatic = 'Skin Drop Mode: ';
-let statusDynamic = data.dropMode;
-if (data.dropMode === 'preset' && data.fixedSkin) {
-  // Сначала выводим Weapon Type, потом " | " и затем Name
-  statusDynamic += ' (' + data.fixedSkin.weapontype + ' | ' + data.fixedSkin.name + ')';
-}
-// Обновляем элемент, используя innerHTML для применения CSS-классов
-document.getElementById('skinDropStatus').innerHTML =
-  '<span class="sdm-static">' + statusStatic + '</span>' +
-  '<span class="sdm-dynamic">' + statusDynamic + '</span>';
 
-      
-    })
-    .catch(err => {
-      document.getElementById("message").textContent = getTranslation("error.settingsLoad", currentLanguage);
-      document.getElementById("message").style.color = "red";
-      console.error(err);
-    });
+        function updateSidebarDropStatus() {
+            const modeSelect = document.getElementById('dropMode');
+            if (!modeSelect) return;
+            const mode = modeSelect.value;
+            const sdm = document.querySelector('.sdm-dynamic');
+            if (!sdm) return;
 
-      document.getElementById("botUsername").addEventListener("input", updatePreview);
-      document.getElementById("botOAuth").addEventListener("input", updatePreview);
-      document.getElementById("channelName").addEventListener("input", updatePreview);
-      document.getElementById("chatDelay").addEventListener("input", updatePreview);
+            const baseModeText = getTranslation(`label.${mode}`);
 
-      document.getElementById("dropMode").addEventListener("change", function() {
-        const presetDiv = document.getElementById("presetSkinSelect");
-        presetDiv.style.display = (this.value === "preset") ? "block" : "none";
-        updatePreview();
-      });
-      document.getElementById("fixedSkin").addEventListener("change", updatePreview);
+            if (mode === 'preset') {
+                const fixedSelect = document.getElementById('fixedSkin');
+                if (fixedSelect && fixedSelect.selectedOptions.length > 0 && fixedSelect.value !== "") {
+                    const selectedSkinIndex = parseInt(fixedSelect.value, 10);
+                    const skinRows = document.querySelectorAll('#skinsTable tbody tr');
 
-      document.getElementById("addSkinBtn").addEventListener("click", () => {
-        addSkinRow();
-      });
+                    if (selectedSkinIndex >= 0 && selectedSkinIndex < skinRows.length) {
+                        const skinRow = skinRows[selectedSkinIndex];
+                        const weaponTypeVal = skinRow.querySelector('.weaponType')?.value.trim() || getTranslation('label.unknown');
+                        const skinNameVal = skinRow.querySelector('.skinName')?.value.trim() || getTranslation('label.unknown');
+                        const imagePath = skinRow.querySelector('.skinImage')?.dataset.filePath || '';
 
-      document.getElementById("settingsForm").addEventListener("submit", function(e) {
-        e.preventDefault();
-        saveSettings();
-      });
-    });
-  </script>
+                        const typeLabel = getTranslation('label.weaponTypeShort');
+                        const nameLabel = getTranslation('label.skinNameShort');
+
+                        let imagePreviewHtml = '';
+                        if (imagePath) {
+                            imagePreviewHtml = `<img src="${imagePath}" alt="${skinNameVal}" class="status-skin-preview">`;
+                        } else {
+                            imagePreviewHtml = `<span class="status-skin-preview-placeholder"><i class="fas fa-image"></i></span>`;
+                        }
+
+                        sdm.innerHTML = `
+                            <div class="drop-mode-preset-active">
+                                <span class="drop-mode-main-label">${baseModeText}:</span>
+                                <div class="preset-skin-status-details">
+                                    ${imagePreviewHtml}
+                                    <div class="status-skin-text-details">
+                                        <div><strong>${typeLabel}</strong> <span class="status-skin-weapontype">${weaponTypeVal}</span></div>
+                                        <div><strong>${nameLabel}</strong> <span class="status-skin-name">${skinNameVal}</span></div>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    } else {
+                        sdm.innerHTML = `<span class="drop-mode-main-label">${baseModeText}:</span> ${getTranslation('label.noSkinSelected')}`;
+                    }
+                } else {
+                    sdm.innerHTML = `<span class="drop-mode-main-label">${baseModeText}:</span> ${getTranslation('label.noSkinSelected')}`;
+                }
+            } else {
+                sdm.textContent = baseModeText;
+            }
+        }
+
+
+        function fetchCount(){
+             const countElement = document.querySelector('.pc-dynamic');
+            if (!countElement) return;
+            fetch('/participants-count')
+             .then(r=>r.ok ? r.json() : Promise.reject(`HTTP error ${r.status}`))
+             .then(d=> {
+                if (typeof d.count !== 'undefined') { countElement.textContent = d.count; }
+                else { console.error('Invalid count data:', d); countElement.textContent = 'Err'; }
+             })
+             .catch(e => { console.error('Error fetching count:', e); countElement.textContent = 'Err'; });
+        }
+        async function uploadFile(file){
+            const fd = new FormData(); fd.append('file', file);
+            try {
+                const res = await fetch('/upload-skin',{method:'POST',body:fd});
+                if (!res.ok) { const errTxt = await res.text(); throw new Error(`Upload failed: ${res.status} ${errTxt}`); }
+                return await res.json();
+            } catch (error) {
+                console.error("Upload error:", error);
+                showMessage(getTranslation('label.uploadFailed') + `: ${error.message}`, 'error');
+                throw error;
+            }
+        }
+        function updateRarityColor(selectElement){
+             const colorIndicator = selectElement.closest('td').querySelector('.rarity-color-indicator-new');
+            if (colorIndicator) { colorIndicator.style.backgroundColor = rarityColors[selectElement.value] || '#ccc'; }
+        }
+
+        function updateFixedSkinOptions(){
+            const fs = document.getElementById('fixedSkin');
+            if (!fs) return;
+            const prevValue = fs.value;
+            fs.innerHTML = '';
+            const placeholderOption = new Option(getTranslation('label.selectSkinPlaceholder'), "");
+            placeholderOption.disabled = true;
+            fs.add(placeholderOption);
+
+            document.querySelectorAll('#skinsTable tbody tr').forEach((tr, i) => {
+                const weaponType = tr.querySelector('.weaponType').value.trim() || 'Unknown Type';
+                const skinName = tr.querySelector('.skinName').value.trim() || 'Unnamed Skin';
+                fs.add(new Option(`${weaponType} : ${skinName}`, i));
+            });
+
+            if (prevValue !== null && prevValue !== '' && fs.querySelector(`option[value="${prevValue}"]`)) { fs.value = prevValue; }
+            else { fs.value = ""; }
+            updateSidebarDropStatus();
+        }
+
+        function addSkinRow(skin = {}) {
+            const tb = document.querySelector('#skinsTable tbody');
+            if (!tb) return;
+            const tr = document.createElement('tr');
+            const chooseFileText = getTranslation("label.chooseFile");
+            const skinImageName = skin.imageName || chooseFileText;
+
+            tr.innerHTML = `
+                <td class="col-type"><input type="text" class="header-input input-table weaponType" value="${skin.weapontype || ''}" placeholder="e.g., AK-47"></td>
+                <td class="col-name"><input type="text" class="header-input input-table skinName" value="${skin.name || ''}" required placeholder="e.g., Redline"></td>
+                <td class="col-image">
+                    <div class="skin-image-cell-content">
+                        <div class="image-preview-wrapper">
+                            <img src="${skin.image || '#'}" alt="Preview" class="skin-image-preview" style="${skin.image ? 'display:block;' : 'display:none;'}">
+                            <span class="preview-placeholder ${skin.image ? 'hidden': ''}"><i class="fas fa-image"></i></span>
+                        </div>
+                        <div class="custom-file-input-wrapper">
+                            <label class="app-button tertiary small-button file-upload-button">
+                                <i class="fas fa-upload"></i>
+                                <input type="file" class="skinImage visually-hidden" accept="image/*">
+                            </label>
+                            <span class="file-name-display fileName">${skinImageName}</span>
+                        </div>
+                    </div>
+                </td>
+                <td class="col-rarity">
+                    <div class="rarity-select-wrapper-new">
+                        <select class="control-select styled-select select-table skinRarity" required>
+                            <option value="Mil-Spec" ${skin.rarity === 'Mil-Spec' ? 'selected' : ''}>Mil-Spec</option>
+                            <option value="Restricted" ${skin.rarity === 'Restricted' ? 'selected' : ''}>Restricted</option>
+                            <option value="Classified" ${skin.rarity === 'Classified' ? 'selected' : ''}>Classified</option>
+                            <option value="Covert" ${skin.rarity === 'Covert' ? 'selected' : ''}>Covert</option>
+                            <option value="Rare Special Items" ${skin.rarity === 'Rare Special Items' ? 'selected' : ''}>Rare Special Items</option>
+                        </select>
+                        <span class="rarity-color-indicator-new"></span>
+                    </div>
+                </td>
+                <td class="col-actions">
+                    <button type="button" class="removeSkinBtn app-button danger" title="Delete Skin" style="min-width: auto; padding: var(--spacing-xs) var(--spacing-sm); line-height:1;">
+                        <i class="fas fa-trash-alt" style="margin-right:0;"></i>
+                    </button>
+                </td>
+            `;
+            tb.append(tr);
+
+            const nameI = tr.querySelector('.skinName');
+            const typeI = tr.querySelector('.weaponType');
+            const fileI = tr.querySelector('.skinImage');
+            const fileN = tr.querySelector('.fileName');
+            const rarI = tr.querySelector('.skinRarity');
+            const delB = tr.querySelector('.removeSkinBtn');
+            const imgPreview = tr.querySelector('.skin-image-preview');
+            const previewPlaceholder = tr.querySelector('.preview-placeholder');
+
+            fileI.dataset.filePath = skin.image || '';
+            updateRarityColor(rarI);
+
+            rarI.onchange = () => updateRarityColor(rarI);
+            delB.onclick = () => { tr.remove(); updateFixedSkinOptions(); };
+
+            fileI.onchange = async (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    if (file.type.startsWith('image/')) {
+                        const reader = new FileReader();
+                        reader.onload = function(event) {
+                            imgPreview.src = event.target.result;
+                            imgPreview.style.display = 'block';
+                            if (previewPlaceholder) previewPlaceholder.classList.add('hidden');
+                        }
+                        reader.readAsDataURL(file);
+                    } else {
+                        imgPreview.src = '#';
+                        imgPreview.style.display = 'none';
+                        if (previewPlaceholder) previewPlaceholder.classList.remove('hidden');
+                        fileN.textContent = getTranslation('label.notAnImage');
+                        return;
+                    }
+
+                    fileN.textContent = getTranslation('label.uploading');
+                    fileN.classList.add('loading');
+                    try {
+                        const resp = await uploadFile(file);
+                        fileI.dataset.filePath = resp.path;
+                        fileN.textContent = resp.path.split(/[\\/]/).pop() || 'Error name';
+                    } catch (err) {
+                        fileN.textContent = getTranslation('label.uploadFailed');
+                        imgPreview.src = '#';
+                        imgPreview.style.display = 'none';
+                        if (previewPlaceholder) previewPlaceholder.classList.remove('hidden');
+                    } finally {
+                        fileN.classList.remove('loading');
+                    }
+                } else {
+                    const existingPath = fileI.dataset.filePath;
+                    fileN.textContent = existingPath ? existingPath.split(/[\\/]/).pop() : chooseFileText;
+                    if (existingPath) {
+                        imgPreview.src = existingPath;
+                        imgPreview.style.display = 'block';
+                        if (previewPlaceholder) previewPlaceholder.classList.add('hidden');
+                    } else {
+                        imgPreview.src = '#';
+                        imgPreview.style.display = 'none';
+                        if (previewPlaceholder) previewPlaceholder.classList.remove('hidden');
+                    }
+                }
+            };
+            nameI.oninput = updateFixedSkinOptions;
+            typeI.oninput = updateFixedSkinOptions;
+        }
+
+        function buildConfig(){
+             const cfg = {
+                chatDelay: 130, skins: [], dropMode: document.getElementById('dropMode').value,
+                fixedSkin: null, fixedSkinIndex: null, rarityChances: {}
+            };
+            const cdi = document.getElementById('chatDelay');
+            if (cdi && cdi.value.trim()!=="" && !isNaN(parseInt(cdi.value))) cfg.chatDelay = +cdi.value; else if(cdi) cdi.value=cfg.chatDelay;
+
+            document.querySelectorAll('#skinsTable tbody tr').forEach((tr, idx)=>{
+                const fPath = tr.querySelector('.skinImage')?.dataset.filePath || '';
+                cfg.skins.push({
+                    name: tr.querySelector('.skinName')?.value || '', weapontype: tr.querySelector('.weaponType')?.value||'',
+                    image: fPath, imageName: fPath.split(/[\\/]/).pop()||'', rarity: tr.querySelector('.skinRarity')?.value||'Mil-Spec'
+                });
+            });
+
+            if (cfg.dropMode==='preset') {
+                const selIdxStr = document.getElementById('fixedSkin')?.value;
+                if (selIdxStr!==null && selIdxStr!=="" && !isNaN(selIdxStr)) {
+                    const idx = parseInt(selIdxStr, 10);
+                    if (idx>=0 && idx<cfg.skins.length) { cfg.fixedSkin=cfg.skins[idx]; cfg.fixedSkinIndex=idx; }
+                    else { cfg.fixedSkin=null; cfg.fixedSkinIndex=null; }
+                } else { cfg.fixedSkin=null; cfg.fixedSkinIndex=null; }
+            }
+
+            let totalChance = 0; let hasInvalidChance = false;
+            const rarities = {'Mil-Spec':0, 'Restricted':0, 'Classified':0, 'Covert':0, 'Rare Special Items':0};
+            for (const key in rarities) {
+                const el = document.getElementById('chance'+key.replace(/\W/g,''));
+                let val = 0;
+                if (el && el.value!=="" && !isNaN(parseFloat(el.value))) {
+                    val = parseFloat(el.value);
+                    if (val<0) { val=0; el.value=0; hasInvalidChance=true; }
+                } else { if(el) el.value=0; hasInvalidChance=true; }
+                cfg.rarityChances[key] = val; totalChance += val;
+            }
+            if (cfg.dropMode === 'random' && Math.abs(totalChance - 100) > 0.001) {
+                console.warn(`Total rarity chance is ${totalChance.toFixed(3)}%, not 100%.`); hasInvalidChance=true;
+            }
+            cfg.isValid = !hasInvalidChance; return cfg;
+        }
+        function showMessage(text, type = 'info', duration = 4000) {
+            const msgEl = document.getElementById('globalStatusMessage');
+            if(!msgEl) return;
+            msgEl.textContent = text; msgEl.className = `global-status-message ${type}`;
+            void msgEl.offsetWidth;
+            msgEl.classList.add('visible');
+            if (msgEl.timeoutId) clearTimeout(msgEl.timeoutId);
+            msgEl.timeoutId = setTimeout(() => {
+                msgEl.classList.remove('visible');
+                 setTimeout(() => { if (!msgEl.classList.contains('visible')) {msgEl.className='global-status-message';}},300);
+                 delete msgEl.timeoutId;
+            }, duration);
+        }
+        function saveSettings(){
+             const cfg = buildConfig();
+            if (!cfg.isValid) { showMessage(getTranslation('error.invalidRarity'), 'error'); return; }
+            if (cfg.dropMode==='preset' && !cfg.fixedSkin && cfg.skins.length>0) { showMessage(getTranslation('error.presetNoSkin'),'error'); return;}
+            if (cfg.skins.some(s=>!s.name)) { showMessage(getTranslation('error.skinNameRequired'),'error'); return; }
+
+            const btn = document.getElementById('saveAllSettingsBtn');
+            const btnIconOnly = btn.querySelector('i').outerHTML;
+            const btnTextSpan = btn.querySelector('span');
+            const originalText = btnTextSpan ? btnTextSpan.textContent : '';
+
+            btn.disabled = true; btn.classList.add('saving');
+            btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> <span>${getTranslation('btn.saving')}</span>`;
+
+            fetch('/save-settings', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(cfg) })
+            .then(r => { if (!r.ok) return r.text().then(t => {throw new Error(`Save failed: ${r.status} ${t}`);}); return r.json(); })
+            .then(d => {
+                showMessage(d.message || getTranslation('success.settingsSaved'), 'success');
+                btn.classList.remove('saving'); btn.classList.add('saved');
+                btn.innerHTML = `<i class="fas fa-check"></i> <span>${getTranslation('btn.saved')}</span>`;
+                setTimeout(() => { btn.classList.remove('saved'); btn.innerHTML = `${btnIconOnly} <span>${originalText}</span>`; btn.disabled = false; }, 2000);
+            })
+            .catch(e => {
+                console.error('Error saving:', e); showMessage(getTranslation('error.savingFailed')+`: ${e.message}`, 'error');
+                btn.classList.remove('saving'); btn.classList.add('error');
+                btn.innerHTML = `<i class="fas fa-times"></i> <span>${getTranslation('btn.saveError')}</span>`;
+                setTimeout(() => { btn.classList.remove('error'); btn.innerHTML = `${btnIconOnly} <span>${originalText}</span>`; btn.disabled = false; }, 3000);
+            });
+        }
+
+        function init(){
+            fetchCount();
+            // Удален код, связанный с кнопками lang-btn-sidebar, так как сами кнопки удалены
+            /*
+            const langBtns = document.querySelectorAll('.lang-btn-sidebar');
+            langBtns.forEach(b => {
+                b.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    setLanguage(b.dataset.lang);
+                    langBtns.forEach(btn => btn.classList.remove('active'));
+                    b.classList.add('active');
+                });
+            });
+            langBtns.forEach(btn => btn.classList.remove('active')); 
+            const activeLangButton = document.querySelector(`.lang-btn-sidebar[data-lang="${currentLang}"]`);
+            if (activeLangButton) activeLangButton.classList.add('active');
+            else { 
+                const enButton = document.querySelector(`.lang-btn-sidebar[data-lang="en"]`);
+                if (enButton) enButton.classList.add('active');
+            }
+            */
+
+            document.getElementById('btn-start')?.addEventListener('click', ()=>fetch('/start-collection',{method:'POST'}));
+            document.getElementById('btn-open')?.addEventListener('click', ()=>fetch('/open-overlay',{method:'POST'}));
+            document.getElementById('btn-roll')?.addEventListener('click', ()=>fetch('/roll',{method:'POST'}));
+            document.getElementById('addSkinBtn')?.addEventListener('click', ()=> { addSkinRow(); updateFixedSkinOptions(); });
+
+            const dmSel = document.getElementById('dropMode'), psDiv = document.getElementById('presetSkinSelect'), fsSel = document.getElementById('fixedSkin');
+            if(dmSel&&psDiv) dmSel.addEventListener('change', e=>{ psDiv.style.display=e.target.value==='preset'?'block':'none'; updateSidebarDropStatus(); });
+            if(fsSel) fsSel.addEventListener('change', updateSidebarDropStatus);
+            document.getElementById('settingsForm').addEventListener('submit', e=>{ e.preventDefault(); saveSettings(); });
+
+            fetch('/get-settings')
+            .then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); })
+            .then(cfg => {
+                if (!cfg || Object.keys(cfg).length === 0) {
+                    showMessage(getTranslation('warning.emptySettings'), 'error'); cfg = {};
+                }
+                document.getElementById('chatDelay').value = cfg.chatDelay ?? 130;
+                document.querySelector('#skinsTable tbody').innerHTML = '';
+                (cfg.skins||[]).forEach(s => addSkinRow(s));
+                updateFixedSkinOptions(); 
+
+                const cdm = cfg.dropMode || 'random';
+                if(dmSel) dmSel.value = cdm;
+                if(psDiv) psDiv.style.display = cdm === 'preset' ? 'block' : 'none';
+
+                if (cdm==='preset' && cfg.skins && cfg.skins.length > 0 && fsSel) {
+                    if (cfg.fixedSkinIndex !== null && cfg.fixedSkinIndex >= 0 && cfg.fixedSkinIndex < cfg.skins.length) {
+                        fsSel.value = cfg.fixedSkinIndex;
+                    } else if (cfg.fixedSkin?.imageName) { 
+                        const idx = (cfg.skins||[]).findIndex(s => s.imageName === cfg.fixedSkin.imageName);
+                        fsSel.value = idx >= 0 ? idx : "";
+                    } else { fsSel.value = ""; }
+                } else if (cdm==='preset' && fsSel) { fsSel.value = ""; }
+
+
+                const defChances = {'Mil-Spec':79.923,'Restricted':15.984,'Classified':3.197,'Covert':0.639,'Rare Special Items':0.256};
+                const lChances = cfg.rarityChances || {};
+                for(const k in defChances){ const el=document.getElementById('chance'+k.replace(/\W/g,'')); if(el) el.value = (typeof lChances[k]==='number')?lChances[k]:defChances[k];}
+
+                setLanguage(currentLang); // Устанавливаем язык по умолчанию или из localStorage
+                updateSidebarDropStatus(); 
+            })
+            .catch(e => {
+                console.error('Error loading settings:', e);
+                showMessage(getTranslation('error.loadingSettings') + `: ${e.message}. Defaults used.`, 'error');
+                const defChances={'Mil-Spec':79.923,'Restricted':15.984,'Classified':3.197,'Covert':0.639,'Rare Special Items':0.256};
+                for(const k in defChances){ const el=document.getElementById('chance'+k.replace(/\W/g,'')); if(el) el.value = defChances[k];}
+                setLanguage(currentLang); // Устанавливаем язык по умолчанию или из localStorage в случае ошибки
+                updateSidebarDropStatus(); 
+            });
+        }
+        document.addEventListener('DOMContentLoaded', init);
+    })();
+    </script>
 </body>
 </html>

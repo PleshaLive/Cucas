@@ -1,24 +1,21 @@
 {
   "name": "twitch-overlay",
   "version": "1.0.0",
-  "description": "Twitch overlay application with case scroll and settings",
+  "description": "Twitch overlay + EventSub Test2 giveaway",
   "main": "index.js",
+  "type": "module",
   "scripts": {
     "start": "node index.js"
   },
   "dependencies": {
-    "@twurple/api": "^7.3.0",
     "@twurple/auth": "^7.3.0",
-    "@twurple/eventsub": "^5.3.4",
-    "@twurple/eventsub-http": "^7.3.0",
+    "@twurple/api": "^7.3.0",
+    "@twurple/eventsub-ws": "^7.3.0",
     "dotenv": "^16.5.0",
     "express": "^4.21.2",
     "express-session": "^1.18.1",
     "multer": "^1.4.5-lts.1",
     "tmi.js": "^1.8.5",
     "ws": "^8.18.1"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC"
+  }
 }

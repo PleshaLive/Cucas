@@ -1,10 +1,5 @@
 {
-  "BOT_USERNAME":        "galaxy_battle_cstv",
-  "BOT_OAUTH":           "oauth:2p3nxl90u9vbnbto8sypk2qflqvw3r",
-  "CHANNEL_NAME":        "galaxy_battle_cstv",
-  "channelPointRewardId": "9ece5832-0308-4269-93ab-9a586edcce66",
-  "channelPointCost":     500,
-  "chatDelay":            130,
+  "chatDelay": 130,
   "skins": [
     {
       "name": "Food Chain",
@@ -147,7 +142,7 @@
       "rarity": "Classified"
     },
     {
-      "name": "Crakow!",  
+      "name": "Crakow!",
       "weapontype": "AWP",
       "image": "/img/1741427712258-MP9-6.png",
       "imageName": "1741427712258-MP9-6.png",
@@ -196,7 +191,7 @@
       "rarity": "Rare Special Items"
     },
     {
-      "name": "Сlean",
+      "name": "Clean",
       "weapontype": "Navaja Knife",
       "image": "/img/1741427748005-MP9.png",
       "imageName": "1741427748005-MP9.png",
@@ -205,10 +200,10 @@
   ],
   "dropMode": "preset",
   "fixedSkin": {
-    "name": "Food Chain",
-    "weapontype": "MP9 ",
-    "image": "/img/1741427464968-MP9-19.png",
-    "imageName": "1741427464968-MP9-19.png",
+    "name": "Violent Daimyo",
+    "weapontype": "Five-SeveN",
+    "image": "/img/1741427522739-MP9-26.png",
+    "imageName": "1741427522739-MP9-26.png",
     "rarity": "Mil-Spec"
   },
   "rarityChances": {
@@ -217,5 +212,7 @@
     "Classified": 3,
     "Covert": 0.7,
     "Rare Special Items": 0.3
-  }
+  },
+  "isValid": true,
+  "fixedSkinIndex": 10
 }
