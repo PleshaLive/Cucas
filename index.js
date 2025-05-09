@@ -1,336 +1,238 @@
-/*************************************************************************
- * index.js — серверная логика (Express + TMI.js + WebSocket + аутентификация 
- * и управление оверлеем через веб-интерфейс)
- *************************************************************************/
+#!/usr/bin/env node
+import 'dotenv/config';
+import fs            from 'fs';
+import path          from 'path';
+import express       from 'express';
+import multer        from 'multer';
+import tmi           from 'tmi.js';
+import { RefreshingAuthProvider } from '@twurple/auth';
+import { ApiClient }              from '@twurple/api';
+import { EventSubWsListener }     from '@twurple/eventsub-ws';
+import { WebSocketServer }        from 'ws';
 
-const express = require('express');
-const multer = require('multer');
-const fs = require('fs');
-const path = require('path');
-const WebSocket = require('ws');
-const tmi = require('tmi.js');
-const session = require('express-session'); // Для работы с сессиями
+// ——————————————————————————————————————————————————————————
+// 0) Пути к файлам и инициализация
+const ROOT        = process.cwd();
+const CONFIG_PATH = path.join(ROOT, 'config.json');
+const PARTS_PATH  = path.join(ROOT, 'participants.json');
+if (!fs.existsSync(PARTS_PATH)) fs.writeFileSync(PARTS_PATH, '[]', 'utf-8');
+let participants = JSON.parse(fs.readFileSync(PARTS_PATH, 'utf-8'));
 
-// Папка для загрузки файлов (public/img)
-const uploadFolder = path.join(__dirname, 'public', 'img');
-if (!fs.existsSync(uploadFolder)) {
-  fs.mkdirSync(uploadFolder, { recursive: true });
-}
+// ——————————————————————————————————————————————————————————
+// 1) Загружаем .env и config.json
+const {
+  BOT_USERNAME,
+  BOT_OAUTH_TOKEN,
+  CHANNEL_NAME,
+  TWITCH_CLIENT_ID,
+  TWITCH_CLIENT_SECRET,
+  TWITCH_BROADCASTER_NAME,
+  TWITCH_OAUTH_TOKEN,
+  TWITCH_REFRESH_TOKEN,
+  REWARD_ID,
+  REWARD_TITLE   = 'Giveaway',
+  PORT           = 8080
+} = process.env;
 
-// Настраиваем multer для сохранения файлов в public/img
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, uploadFolder);
-  },
-  filename: (req, file, cb) => {
-    const targetPath = path.join(uploadFolder, file.originalname);
-    if (fs.existsSync(targetPath)) {
-      console.log("File already exists, using existing file:", file.originalname);
-      cb(null, file.originalname);
-    } else {
-      const newName = Date.now() + '-' + file.originalname;
-      cb(null, newName);
-    }
+[
+  'BOT_USERNAME','BOT_OAUTH_TOKEN','CHANNEL_NAME',
+  'TWITCH_CLIENT_ID','TWITCH_CLIENT_SECRET',
+  'TWITCH_BROADCASTER_NAME',
+  'TWITCH_OAUTH_TOKEN','TWITCH_REFRESH_TOKEN',
+  'REWARD_ID'
+].forEach(k => {
+  if (!process.env[k]) {
+    console.error(`❌ Missing ${k} in .env`);
+    process.exit(1);
   }
 });
-const upload = multer({ storage });
 
-// Загружаем или создаём config.json
-const configPath = path.join(__dirname, 'config.json');
-let config = {
-  BOT_USERNAME: 'Your_Bot_Login',
-  BOT_OAUTH: 'oauth:xxxxxx',
-  CHANNEL_NAME: 'your_channel',
-  chatDelay: 130,
-  skins: [],
-  dropMode: 'random',
-  fixedSkin: null,
-  rarityChances: {
-    "Mil-Spec": 79.9,
-    "Restricted": 16,
-    "Classified": 3.2,
-    "Covert": 0.64,
-    "Rare Special Items": 0.125
-  }
-};
-try {
-  const configFile = fs.readFileSync(configPath);
-  Object.assign(config, JSON.parse(configFile));
-} catch (err) {
-  console.log('Не удалось загрузить config.json, используется конфиг по умолчанию.');
+// Читаем config.json (skins, dropMode, fixedSkin, rarityChances, chatDelay)
+if (!fs.existsSync(CONFIG_PATH)) {
+  console.error('❌ config.json not found');
+  process.exit(1);
 }
+const config = JSON.parse(fs.readFileSync(CONFIG_PATH, 'utf-8'));
+let { skins, dropMode, fixedSkin, rarityChances, chatDelay } = config;
 
+config.chatDelay = config.chatDelay ?? parseInt(CHAT_DELAY, 10);
+
+// ——————————————————————————————————————————————————————————
+// 2) Express + JSON + статика
 const app = express();
-
-// Обработка JSON и URL-encoded данных (данные из форм)
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(express.static(path.join(ROOT, 'public')));
 
-// Настройка сессий (секрет рекомендуется хранить в переменной окружения)
-app.use(session({
-  secret: 'mySuperSecretKey', // Замените на более надёжное значение
-  resave: false,
-  saveUninitialized: false
-}));
+// ——————————————————————————————————————————————————————————
+// 3) REST API
 
-/*************************************************************************
- * Маршруты для аутентификации
- *************************************************************************/
+// GET /get-settings — отдать весь config
+app.get('/get-settings', (_req, res) => res.json(config));
 
-// Отдаем страницу входа (login.html)
-app.get('/login', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'login.html'));
+// POST /save-settings — сохранить body в config.json
+app.post('/save-settings', (req, res) => {
+  Object.assign(config, req.body);
+  ({ skins, dropMode, fixedSkin, rarityChances, chatDelay } = config);
+  fs.writeFileSync(CONFIG_PATH, JSON.stringify(config, null, 2), 'utf-8');
+  broadcast({ type: 'settings-updated' });
+  console.log('[CONFIG] config.json saved');
+  res.json({ message: 'Settings saved' });
 });
 
-app.get('/participants-count', (req, res) => {
-  res.json({ count: participants.length });
+// Участники
+app.get('/participants-count', (_req, res) => res.json({ count: participants.length }));
+app.get('/participants.json',     (_req, res) => res.json(participants));
+
+// Загрузка скинов
+const IMG_DIR = path.join(ROOT, 'public', 'img');
+fs.mkdirSync(IMG_DIR, { recursive: true });
+const upload = multer({
+  storage: multer.diskStorage({
+    destination: (_req, _file, cb) => cb(null, IMG_DIR),
+    filename:    (_req, file, cb) => {
+      const target = path.join(IMG_DIR, file.originalname);
+      cb(null, fs.existsSync(target)
+        ? file.originalname
+        : `${Date.now()}-${file.originalname}`);
+    }
+  })
+});
+app.post('/upload-skin', upload.single('file'), (req, res) => {
+  if (!req.file) return res.status(400).json({ message: 'No file uploaded' });
+  res.json({ path: `/img/${req.file.filename}` });
+});
+
+// ——————————————————————————————————————————————————————————
+// 4) Админ-действия
+let collecting = false;
+let isOpen     = false;
+
+// Админ-действия из UI
+app.post('/start-collection', (_req, res) => {
+  collecting = true;
+  participants = [];
+  fs.writeFileSync(PARTS_PATH, JSON.stringify(participants, null, 2), 'utf-8');
+  broadcast({ type:'updateParticipants', participants });
+  // ВОТ ЭТА СТРОКА ВОЗВРАЩЕНА:
+  chat.say(CHANNEL_NAME,
+    `🎉 ${REWARD_TITLE} giveaway started — redeem to join!`
+  );
+  console.log('[ADMIN] start-collection');
+  res.json({ success:true });
 });
 
 
-// Обработка формы логина
-app.post('/login', (req, res) => {
-  const { username, password } = req.body;
-  // Проверка логина и пароля
-  if (username === 'StarGalaxy' && password === 'FuckTheWorld1996') {
-    req.session.authenticated = true;
-    return res.redirect('/settings.html');
-  }
-  // Если данные неверны, перенаправляем с параметром ошибки
-  return res.redirect('/login?error=1');
-});
-
-// Защищённый маршрут для settings.html
-app.get('/settings.html', (req, res) => {
-  if (req.session && req.session.authenticated) {
-    return res.sendFile(path.join(__dirname, 'public', 'settings.html'));
-  }
-  res.redirect('/login');
-});
-
-/*************************************************************************
- * Маршруты для управления оверлеем через веб-интерфейс (кнопки на странице /settings)
- *************************************************************************/
-
-// Запуск сбора участников (аналог !letsgo)
-app.post('/start-collection', (req, res) => {
-  if (!(req.session && req.session.authenticated)) {
-    return res.status(403).json({ error: 'Not authorized' });
-  }
-  startCollection();
-  res.json({ success: true });
-});
-
-// Запуск анимации (аналог !open)
-app.post('/open-overlay', (req, res) => {
-  if (!(req.session && req.session.authenticated)) {
-    return res.status(403).json({ error: 'Not authorized' });
-  }
+app.post('/open-overlay', (_req, res) => {
   isOpen = true;
-  sendOpenToOverlay();
+  broadcast({ type: 'open' });
+  console.log('[ADMIN] open-overlay');
   res.json({ success: true });
 });
 
-// Запуск розыгрыша (аналог !roll)
-app.post('/roll', (req, res) => {
-  if (!(req.session && req.session.authenticated)) {
-    return res.status(403).json({ error: 'Not authorized' });
-  }
-  if (!isOpen) {
-    return res.status(400).json({ error: 'Overlay is not open' });
-  }
-  if (participants.length === 0) {
-    return res.status(400).json({ error: 'Нет участников' });
-  }
+app.post('/roll', (_req, res) => {
+  if (!isOpen)                return res.status(400).json({ error: 'Overlay not open' });
+  if (!participants.length)   return res.status(400).json({ error: 'No participants' });
+
   collecting = false;
   const winner = participants[Math.floor(Math.random() * participants.length)];
-  const delay = (config.chatDelay || 130) * 1000;
+
   setTimeout(() => {
-    client.say(config.CHANNEL_NAME, `Let's congratulate the winner!`);
-  }, delay);
-  sendRollToOverlay(winner, participants);
-  // Сбрасываем флаг, чтобы повторный розыгрыш можно было запустить только после нового открытия
+    chat.say(CHANNEL_NAME,
+      `Congratulations @${winner}, you won ${REWARD_TITLE}!`
+    );
+  }, chatDelay * 1000);
+
+  broadcast({
+    type: 'roll',
+    winner,
+    participants,
+    dropMode,
+    fixedSkin,
+    rarityChances,
+    skins
+  });
+
   isOpen = false;
+  console.log('[ADMIN] roll, winner=', winner);
   res.json({ success: true, winner });
 });
 
-/*************************************************************************
- * Маршруты для получения/сохранения настроек и загрузки файлов
- *************************************************************************/
-app.get('/get-settings', (req, res) => {
-  res.json(config);
-});
-
-app.post('/save-settings', (req, res) => {
-  const newConfig = req.body;
-
-  config.BOT_USERNAME = newConfig.BOT_USERNAME || config.BOT_USERNAME;
-  config.BOT_OAUTH = newConfig.BOT_OAUTH || config.BOT_OAUTH;
-  config.CHANNEL_NAME = newConfig.CHANNEL_NAME || config.CHANNEL_NAME;
-  config.chatDelay = newConfig.chatDelay || config.chatDelay;
-  if (Array.isArray(newConfig.skins)) {
-    config.skins = newConfig.skins;
-  }
-  config.dropMode = newConfig.dropMode || 'random';
-  config.fixedSkin = newConfig.fixedSkin || null;
-  config.rarityChances = newConfig.rarityChances || config.rarityChances;
-
-  fs.writeFile(configPath, JSON.stringify(config, null, 2), (err) => {
-    if (err) {
-      console.error('Ошибка записи config.json:', err);
-      return res.status(500).json({ message: 'Ошибка сохранения настроек' });
-    }
-    res.json({ message: 'Настройки сохранены. Перезапустите сервер для применения изменений.' });
-    // Уведомляем всех клиентов WebSocket об обновлении настроек
-    wss.clients.forEach(client => {
-      if (client.readyState === WebSocket.OPEN) {
-        client.send(JSON.stringify({ type: 'settings-updated' }));
-      }
+// ——————————————————————————————————————————————————————————
+// 5) WebSocket для оверлея
+let wss, broadcast;
+{
+  const server = app.listen(PORT, () => console.log(`[HTTP] listening on :${PORT}`));
+  wss = new WebSocketServer({ server });
+  broadcast = msg => {
+    wss.clients.forEach(c => {
+      if (c.readyState === c.OPEN) c.send(JSON.stringify(msg));
     });
-  });
-});
-
-app.post('/upload-skin', upload.single('file'), (req, res) => {
-  if (!req.file) {
-    return res.status(400).json({ message: 'No file uploaded' });
-  }
-  const filePath = '/img/' + req.file.filename;
-  console.log("File saved (or reused):", filePath);
-  res.json({ path: filePath });
-});
-
-/*************************************************************************
- * Логика TMI.js (чат-бот) и сбор участников
- *************************************************************************/
-const tmiConfig = {
-  options: { debug: true },
-  connection: { reconnect: true, secure: true },
-  identity: {
-    username: config.BOT_USERNAME,
-    password: config.BOT_OAUTH
-  },
-  channels: [ config.CHANNEL_NAME ]
-};
-
-const client = new tmi.Client(tmiConfig);
-let collecting = false;
-let participants = [];
-let isOpen = false; // Флаг, показывающий, что команда !open уже выполнена
-
-client.on('message', (channel, tags, message, self) => {
-  if (self) return;
-  const username = tags.username.toLowerCase();
-  const msg = message.trim().toLowerCase();
-
-  // Команда !letsgo – запускает сбор участников (исходно для чата)
-  if (msg === '!letsgo') {
-    if (tags.badges && tags.badges.broadcaster === '1') {
-      startCollection(); // При новом запуске розыгрыша участники очищаются
-    } else {
-      client.say(config.CHANNEL_NAME, 'Galaxy runs this madhouse. Don’t fight it - just roll with the trip.');
-    }
-  }
-
-  // Команда !open – запускает анимацию (исходно для чата)
-  if (msg === '!open') {
-    if (tags.badges && tags.badges.broadcaster === '1') {
-      isOpen = true;
-      sendOpenToOverlay();
-    }
-  }
-
-  // Команда !galaxy для добавления участников во время сбора
-  if (collecting && msg === '!galaxy') {
-    if (!participants.includes(username)) {
-      participants.push(username);
-      client.say(config.CHANNEL_NAME, `@${username} You've been thrown into the chaos of fate - welcome to the giveaway, soldier!`);
-      sendParticipantsUpdate();
-    }
-  }
-
-  // Команда !roll для выбора победителя (исходно для чата)
-  if (msg === '!roll') {
-    if (tags.badges && tags.badges.broadcaster === '1') {
-      if (!isOpen) {
-        client.say(config.CHANNEL_NAME, 'I love you all!');
-        return;
-      }
-      if (participants.length === 0) {
-        client.say(config.CHANNEL_NAME, 'HELLO WORLD!');
-        return;
-      }
-      collecting = false;
-      const winner = participants[Math.floor(Math.random() * participants.length)];
-      const delay = (config.chatDelay || 130) * 1000;
-      setTimeout(() => {
-        client.say(config.CHANNEL_NAME, `Let's congratulate the winner!`);
-      }, delay);
-      sendRollToOverlay(winner, participants);
-      isOpen = false;
-    }
-  }
-});
-
-// Функция сброса списка участников и запуска нового розыгрыша
-function startCollection() {
-  collecting = true;
-  participants = []; // Очищаем старый список
-  sendParticipantsUpdate();
-  client.say(config.CHANNEL_NAME, 'Type !galaxy in chat and claim your prize - if the cosmos deems you worthy.');
-}
-
-client.connect().catch(err => {
-  console.error('Ошибка подключения к Twitch:', err);
-});
-
-/*************************************************************************
- * WebSocket-сервер для оверлея
- *************************************************************************/
-const PORT = process.env.PORT || 8080;
-const server = app.listen(PORT, () => {
-  console.log(`[SERVER] Запущен на порту ${PORT}`);
-});
-
-const wss = new WebSocket.Server({ server });
-wss.on('connection', (ws) => {
-  console.log('[WS] Overlay connected!');
-});
-
-function sendOpenToOverlay() {
-  wss.clients.forEach(client => {
-    if (client.readyState === WebSocket.OPEN) {
-      client.send(JSON.stringify({ type: 'open' }));
-    }
-  });
-}
-
-function sendParticipantsUpdate() {
-  const data = { type: 'updateParticipants', participants };
-  wss.clients.forEach(client => {
-    if (client.readyState === WebSocket.OPEN) {
-      client.send(JSON.stringify(data));
-    }
-  });
-}
-
-function sendRollToOverlay(winner, participantsList) {
-  const data = {
-    type: 'roll',
-    winner,
-    participants: participantsList,
-    dropMode: config.dropMode
   };
-  if (config.dropMode === 'preset' && config.fixedSkin) {
-    data.fixedSkin = config.fixedSkin;
-  }
-  wss.clients.forEach(client => {
-    if (client.readyState === WebSocket.OPEN) {
-      client.send(JSON.stringify(data));
-    }
-  });
+  wss.on('connection', () => console.log('[WS] Overlay connected'));
 }
 
-/*************************************************************************
- * Раздача статических файлов
- * (Этот вызов должен быть в конце, чтобы маршруты выше имели приоритет)
- *************************************************************************/
-app.use(express.static(path.join(__dirname, 'public')));
+// ——————————————————————————————————————————————————————————
+// 6) TMI.js — чат-бот
+const chat = new tmi.Client({
+  options:    { debug: true },
+  connection: { secure: true, reconnect: true },
+  identity:   { username: BOT_USERNAME, password: BOT_OAUTH_TOKEN },
+  channels:   [ CHANNEL_NAME ]
+});
+chat.connect()
+  .then(() => console.log('[TMI] connected'))
+  .catch(err => console.error('[TMI] login failed', err));
+
+chat.on('message', (_ch, tags, msg, self) => {
+  if (self || tags.badges?.broadcaster !== '1') return;
+  const cmd = msg.trim().toLowerCase();
+  if (cmd === '!letsgo') fetch(`http://localhost:${PORT}/start-collection`, { method: 'POST' });
+  if (cmd === '!open')   fetch(`http://localhost:${PORT}/open-overlay`,    { method: 'POST' });
+  if (cmd === '!roll')   fetch(`http://localhost:${PORT}/roll`,            { method: 'POST' });
+});
+
+// ——————————————————————————————————————————————————————————
+// 7) EventSub WS — подписка на выкуп вознаграждения
+(async() => {
+  // 1) Сначала создаём провайдер, но НЕ добавляем токен
+  const authProv = new RefreshingAuthProvider(
+    { clientId: TWITCH_CLIENT_ID, clientSecret: TWITCH_CLIENT_SECRET },
+    {} // пустой, добавим токен чуть позже вместе с userId
+  );
+
+  // 2) Создаём API-клиент, находим пользователя по имени
+  const api  = new ApiClient({ authProvider: authProv });
+  const user = await api.users.getUserByName(TWITCH_BROADCASTER_NAME);
+  if (!user) throw new Error('Streamer not found');
+
+  // 3) **Добавляем** токен с указанием userId — иначе подписка не работает
+  await authProv.addUserForToken({
+    accessToken:  TWITCH_OAUTH_TOKEN,
+    refreshToken: TWITCH_REFRESH_TOKEN,
+    expiresIn:    0,
+    obtainmentTimestamp: Math.floor(Date.now() / 1000),
+    userId:       user.id   // <<< вот здесь важно передать userId
+  });
+
+  // 4) Теперь подписываемся на EventSub через WS
+  const listener = new EventSubWsListener({ authProvider: authProv, apiClient: api });
+  listener.onChannelRedemptionAddForReward(
+    user.id,
+    REWARD_ID,
+    event => {
+      const disp = event.userDisplayName || event.userName;
+      if (!collecting) return;
+      if (!participants.includes(disp)) {
+        participants.push(disp);
+        fs.writeFileSync(PARTS_PATH, JSON.stringify(participants, null, 2), 'utf-8');
+        console.log(`➕ Added ${disp}`);
+        chat.say(CHANNEL_NAME, `@${disp}, you've entered the "${REWARD_TITLE}" giveaway!`);
+        broadcast({ type: 'updateParticipants', participants });
+      }
+    }
+  );
+
+  await listener.start();
+  console.log(`[EVENTSUB] Listening for "${REWARD_TITLE}" (ID=${REWARD_ID})`);
+})();

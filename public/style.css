@@ -1,556 +1,422 @@
 /* Общие стили */
 body {
-  background: linear-gradient(135deg, #1e1e1e, #3a3a3a);
-  margin: 0;
-  padding: 0;
-  overflow: hidden;
-  font-family: 'Roboto', sans-serif;
-  color: #ffffff00; /* Прозрачный цвет текста по умолчанию, если основной текст не задан */
+    background: linear-gradient(135deg, #1e1e1e, #3a3a3a);
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    font-family: 'Roboto', sans-serif;
+    color: #ffffff00;
 }
 
 #overlayContainer {
-  position: absolute;
-  top: 0; left: 0;
-  width: 100%; height: 100%;
-  opacity: 0;
-  transition: opacity 1s ease-in-out;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  pointer-events: none; /* По умолчанию не перехватывает события мыши */
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    opacity: 0;
+    transition: opacity 1s ease-in-out;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    pointer-events: none;
 }
-#overlayContainer.visible {
-  opacity: 1;
-  pointer-events: auto; /* Когда видим, перехватывает события */
+#overlayContainer.visible { 
+    opacity: 1; 
 }
 
 #startMessage {
-  position: absolute;
-  top: 10%;
-  width: 100%;
-  text-align: center;
-  font-size: 48px;
-  display: none;
-  color: #fff;
-  text-shadow: 0 0 10px rgba(0,0,0,0.7);
+    position: absolute;
+    top: 10%;
+    width: 100%;
+    text-align: center;
+    font-size: 48px;
+    display: none;
+    color: #fff;
 }
 
 /* Мейн контейнер */
 #rollerContainer {
-  width: 1800px; /* увеличено на 500px (было 1200px) */
-  height: 200px; /* Высота контейнера с лентой */
-  margin: 40px auto;
-  border: 0px solid #0F0C1D; /* Убрана видимая граница */
-  overflow: hidden;
-  position: relative;
-  background: rgba(0, 0, 0, 0.5); /* Полупрозрачный фон для контейнера ленты */
-  box-shadow: 0 0 15px rgba(0,0,0,0.5);
+    width: 1800px; /* увеличено на 500px (было 1200px) */
+    height: 200px;
+    margin: 40px auto;
+    border: 0px solid #0F0C1D;
+    overflow: hidden;
+    position: relative;
+    background: rgba(0, 0, 0, 0.5);
 }
 
 #centerLine {
-  position: absolute;
-  left: 50%;
-  top: 0;
-  width: 80px; /* Ширина изображения стрелки */
-  height: 100%;
-  background: url('/img/LINE.png') no-repeat center center; /* Путь к изображению стрелки */
-  background-size: contain; /* Масштабировать изображение, чтобы оно поместилось */
-  transform: translateX(-40px); /* Сдвигаем на половину ширины, чтобы «носик» был в центре */
-  pointer-events: none;
-  z-index: 9999; /* Поверх ленты скинов */
-}
+    position: absolute;
+    left: 50%;
+    top: 0;
+    width: 80px;
+    height: 100%;
+    background: url('/img/LINE.png') no-repeat center center;
+    transform: translateX(-40px); /* Сдвигаем на 40px, чтобы «носик» был в центре */
+    pointer-events: none;
+    z-index: 9999;
+}  
 
 #skinStrip {
-  display: inline-block; /* Для горизонтального расположения элементов */
-  white-space: nowrap; /* Запрещаем перенос элементов на новую строку */
-  position: relative;
-  transform: translateX(0);
-  font-size: 0; /* Устраняем пробелы между inline-block элементами */
+    display: inline-block;
+    white-space: nowrap;
+    position: relative;
+    transform: translateX(0);
+    font-size: 0; /* Устраняем пробелы между inline-block элементами */
 }
 #skinStrip.initial-animation {
-  animation: scrollLoop 60s linear infinite; /* Анимация "прогрева" */
+    animation: scrollLoop 60s linear infinite;
 }
 @keyframes scrollLoop {
-  0%   { transform: translateX(0); }
-  /* Рассчитать translateX для плавной бесконечной прокрутки части элементов.
-     Если у вас 150 элементов и вы хотите, чтобы первые ~10-15 были видны и потом повторялись,
-     нужно смещать на (150 - (видимое кол-во)) * ширина_элемента.
-     Например, если ширина элемента ~257px, и мы хотим, чтобы "зацикливалось" после прокрутки
-     примерно 130 элементов (150 - 20 видимых): 130 * 257px = -33410px
-     Это значение для @keyframes scrollLoop 100% { transform: translateX(-XXXXXpx); }
-     Но для initial-animation лучше использовать меньшее значение для эффекта "прогрева"
-     например, на ширину нескольких экранов.
-     Пример: -9000px для прокрутки ~35 скинов.
-  */
-  100% { transform: translateX(-9000px); } /* Пример значения для анимации "прогрева" */
+    0%   { transform: translateX(0); }
+    100% { transform: translateX(-900px); }
 }
 
 /* Оверлей победителя */
 #winnerOverlay {
-  position: fixed;
-  top: 0; left: 0;
-  width: 100vw;
-  height: 100vh;
-  display: none; /* Скрыт по умолчанию */
-  justify-content: center;
-  align-items: center;
-  z-index: 999999; /* Самый высокий z-index */
-  pointer-events: none; /* По умолчанию не перехватывает события */
+    position: fixed;
+    top: 0; left: 0;
+    width: 100vw;
+    height: 100vh;
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 999999;
+    pointer-events: none;
 }
 #winnerOverlay.visible {
-  display: flex; /* Показываем, когда есть победитель */
+    display: flex;
 }
 
-/* Анимации появления (не используются в текущей логике, но оставлены) */
+/* Анимации появления с разных сторон */
 @keyframes zoomInFromRight {
+    0% {
+      opacity: 0;
+      transform: translateX(100%) scale(1.5);
+    }
+    100% {
+      opacity: 1;
+      transform: translateX(-40px) scale(1);
+    }
+}
+@keyframes zoomInFromLeft {
+    0% {
+      opacity: 0;
+      transform: translateX(-100%) scale(0.5);
+    }
+    100% {
+      opacity: 1;
+      transform: translateX(0) scale(1);
+    }
+}
+   
+@keyframes zoomInFromTop {
+    0% {
+      opacity: 0;
+      transform: translateY(-70px) translateX(-20px) scale(0.5);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(-28px) scale(1);
+    }
+}
+  
+@keyframes zoomInFromBottom {
   0% {
     opacity: 0;
-    transform: translateX(100%) scale(1.5);
+    transform: translateY(0%) scale(0.5);
   }
   100% {
     opacity: 1;
-    transform: translateX(-40px) scale(1); /* -40px - это сдвиг центральной линии */
+    transform: translateY(0) scale(1);
   }
 }
-/* ... другие @keyframes zoomInFrom... если они нужны ... */
 
-/* Анимация исчезновения (если нужна общая) */
+/* Анимация исчезновения: теперь используется только fade */
 @keyframes fadeOut {
-  from { opacity: 1; }
-  to   { opacity: 0; }
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
 }
 
 /* ============================= */
-/* Карточка одного скина (oneFrame)   */
+/*   Карточка одного скина (oneFrame)   */
 /* ============================= */
 .oneFrame {
-  position: relative;
-  display: inline-block;
-  width: 257px;  /* Ширина карточки скина */
-  height: 198px; /* Высота карточки скина */
-  background: #FFFFFF; /* Базовый фон, если другие не перекрывают */
-  overflow: hidden;
-  transition: all 0.3s ease;
-  font-size: 16px; /* Базовый размер шрифта для текста внутри карточки */
-  margin-right: 1px; /* Небольшой отступ между карточками */
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    position: relative;
+    display: inline-block;
+    width: 257px;
+    height: 198px;
+    background: #FFFFFF;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    font-size: 16px;
+    margin-right: 1px;
 }
 .oneFrame:last-child {
-  margin-right: 0;
+    margin-right: 0;
 }
 
-/* F1 - Основной фон скина под картинкой */
+/* F1 */
 .oneFrame .f1 {
-  box-sizing: border-box;
-  position: absolute;
-  width: 257px;
-  height: 169px;
-  left: 0;
-  top: 29px; /* Сдвиг вниз, чтобы освободить место для BG участника */
-  background: linear-gradient(180deg, #4C5CA7 0%, #13121C 100%); /* Дефолтный градиент */
+    box-sizing: border-box;
+    position: absolute;
+    width: 257px;
+    height: 169px;
+    left: 0;
+    top: 29px;
+    background: linear-gradient(180deg, #4C5CA7 0%, #13121C 100%);
 }
 
-/* SKIN PHOTO - Изображение скина */
+/* SKIN PHOTO */
 .oneFrame .skinPhoto {
-  position: absolute;
-  width: 257px; /* Может быть чуть меньше для отступов, например 240px */
-  height: 169px;/* Может быть чуть меньше, например 150px */
-  left: calc(50% - 257px/2); /* Центрирование */
-  top: calc(50% - 169px/2 + 14.5px); /* Центрирование с учетом сдвига f1 */
-  background-size: contain; /* Чтобы весь скин был виден */
-  background-position: center;
-  background-repeat: no-repeat;
+    position: absolute;
+    width: 257px;
+    height: 169px;
+    left: calc(50% - 257px/2);
+    top: calc(50% - 169px/2 + 14.5px);
+    background-size: cover;
+    background-position: center;
 }
 
-/* ParticipantsBG - Фон для имени участника */
+/* ParticipantsBG */
 .oneFrame .participantsBG {
-  position: absolute;
-  width: 257px;
-  height: 29px;
-  left: 0;
-  top: 0;
-  background: #2C3878; /* Дефолтный фон */
+    position: absolute;
+    width: 257px;
+    height: 29px;
+    left: 0;
+    top: 0;
+    background: #2C3878;
 }
 
-/* Participants NICKNAME - Имя участника */
+/* Participants NICKNAME */
 .oneFrame .participantsNickname {
-  position: absolute;
-  width: 206.55px; /* Ширина текста ника */
-  height: 20.82px; /* Высота текста ника */
-  left: 27.39px;  /* Отступ слева для центрирования */
-  top: 4px;      /* Отступ сверху */
-  font-family: 'Blender Pro', sans-serif; /* Используйте доступный шрифт или замените */
-  font-weight: 700;
-  font-size: 18px;
-  line-height: 26px; /* Должно быть близко к высоте блока для верт. центрирования */
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-transform: capitalize; /* Первая буква заглавная */
-  color: #FFFFFF;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+    position: absolute;
+    width: 206.55px;
+    height: 20.82px;
+    left: 27.39px;
+    top: 4px;
+    font-family: 'Blender Pro', sans-serif;
+    font-weight: 700;
+    font-size: 18px;
+    line-height: 26px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-transform: capitalize;
+    color: #FFFFFF;
 }
 
-/* Skin Name - Название скина */
+/* Skin Name */
 .oneFrame .skinName {
-  position: absolute;
-  width: 189.57px; /* Ширина текста названия */
-  height: 20.82px;
-  left: 10.96px;
-  top: 170.39px; /* Под картинкой скина */
-  font-family: 'Blender Pro', sans-serif;
-  font-weight: 700;
-  font-size: 20px; /* Уменьшил для лучшего вида, было 21.3672px */
-  line-height: 20px; /* Близко к высоте */
-  display: flex;
-  align-items: center;
-  text-transform: capitalize;
-  color: #FFFFFF;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+    position: absolute;
+    width: 189.57px;
+    height: 20.82px;
+    left: 10.96px;
+    top: 170.39px;
+    font-family: 'Blender Pro', sans-serif;
+    font-weight: 700;
+    font-size: 21.3672px;
+    line-height: 26px;
+    display: flex;
+    align-items: center;
+    text-transform: capitalize;
+    color: #FFFFFF;
 }
 
-/* WEAPON Type - Тип оружия */
+/* WEAPON Type */
 .oneFrame .weaponType {
-  position: absolute;
-  width: 93.04px;
-  height: 10.22px;
-  left: 10.96px;
-  top: 159.6px; /* Над названием скина */
-  font-family: 'Blender Pro', sans-serif;
-  font-weight: 700;
-  font-size: 13px;
-  line-height: 13px;
-  display: flex;
-  align-items: center;
-  text-transform: capitalize;
-  color: #65718A; /* Дефолтный цвет */
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+    position: absolute;
+    width: 93.04px;
+    height: 10.22px;
+    left: 10.96px;
+    top: 159.6px;
+    font-family: 'Blender Pro', sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    line-height: 13px;
+    display: flex;
+    align-items: center;
+    text-transform: capitalize;
+    color: #65718A;
 }
 
 /* Окраска по редкости */
-.oneFrame[data-rarity="Mil-Spec"] .f1 { background: linear-gradient(180deg, #183F80 0%, #100B1D 100%); }
-.oneFrame[data-rarity="Mil-Spec"] .participantsBG { background: #1E5DBB; }
-.oneFrame[data-rarity="Mil-Spec"] .weaponType { color: #236CD9; }
+.oneFrame[data-rarity="Mil-Spec"] .f1 {
+    background: linear-gradient(180deg, #183F80 0%, #100B1D 100%);
+}
+.oneFrame[data-rarity="Mil-Spec"] .participantsBG {
+    background: #1E5DBB;
+}
+.oneFrame[data-rarity="Mil-Spec"] .weaponType {
+    color: #236CD9;
+}
 
-.oneFrame[data-rarity="Restricted"] .f1 { background: linear-gradient(180deg, #6E43B8 0%, #100B1D 100%); }
-.oneFrame[data-rarity="Restricted"] .participantsBG { background: #5c3e8f; }
-.oneFrame[data-rarity="Restricted"] .weaponType { color: #8550DE; }
+.oneFrame[data-rarity="Restricted"] .f1 {
+    background: linear-gradient(180deg, #6E43B8 0%, #100B1D 100%);
+}
+.oneFrame[data-rarity="Restricted"] .participantsBG {
+    background: #5c3e8f;
+}
+.oneFrame[data-rarity="Restricted"] .weaponType {
+    color: #8550DE;
+}
 
-.oneFrame[data-rarity="Classified"] .f1 { background: linear-gradient(180deg, #A5517F 0%, #100B1D 100%); }
-.oneFrame[data-rarity="Classified"] .participantsBG { background: #7c4061; }
-.oneFrame[data-rarity="Classified"] .weaponType { color: #CA5B98; }
+.oneFrame[data-rarity="Classified"] .f1 {
+    background: linear-gradient(180deg, #A5517F 0%, #100B1D 100%);
+}
+.oneFrame[data-rarity="Classified"] .participantsBG {
+    background: #7c4061;
+}
+.oneFrame[data-rarity="Classified"] .weaponType {
+    color: #CA5B98;
+}
 
-.oneFrame[data-rarity="Covert"] .f1 { background: linear-gradient(180deg, #782424 0%, #100B1D 100%); }
-.oneFrame[data-rarity="Covert"] .participantsBG { background: #8d2d2d; }
-.oneFrame[data-rarity="Covert"] .weaponType { color: #B53E3E; }
+.oneFrame[data-rarity="Covert"] .f1 {
+    background: linear-gradient(180deg, #782424 0%, #100B1D 100%);
+}
+.oneFrame[data-rarity="Covert"] .participantsBG {
+    background: #8d2d2d;
+}
+.oneFrame[data-rarity="Covert"] .weaponType {
+    color: #B53E3E;
+}
 
-.oneFrame[data-rarity="Rare Special Items"] .f1 { background: linear-gradient(180deg, #B7A47D 0%, #100B1D 100%); }
-.oneFrame[data-rarity="Rare Special Items"] .participantsBG { background: #aa956a; }
-.oneFrame[data-rarity="Rare Special Items"] .weaponType { color: #D2BC8D; }
+.oneFrame[data-rarity="Rare Special Items"] .f1 {
+    background: linear-gradient(180deg, #B7A47D 0%, #100B1D 100%);
+}
+.oneFrame[data-rarity="Rare Special Items"] .participantsBG {
+    background: #aa956a;
+}
+.oneFrame[data-rarity="Rare Special Items"] .weaponType {
+    color: #D2BC8D;
+}
 
-/* Финальное состояние победителя (winnerFinal) */
+/* Финальное состояние победителя (winnerFinal) – визуальный вид оставляем прежним */
 .winnerFinal {
-  position: absolute !important; /* Переопределяем позиционирование */
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%) !important; /* Центрирование относительно #winnerOverlay */
-  background: none !important; /* Убираем фон самой карточки */
-  overflow: visible !important; /* Позволяем элементам выходить за пределы */
-  width: 380px !important;   /* Ширина финального отображения победителя */
-  height: 468px !important;  /* Высота финального отображения победителя */
-  z-index: 10; /* Поверх других элементов в #winnerOverlay, если есть */
+    position: absolute !important;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    background: none !important;
+    overflow: visible !important;
+    width: 380px !important;
+    height: 468px !important;
 }
 
-.winnerFinal > .f1 { /* Это фон-подложка для финального вида */
-  box-sizing: border-box;
-  position: absolute;
-  width: 280px !important; /* Ширина фона */
-  height: 403px !important; /* Высота фона */
-  left: calc(50% - 280px/2 - 17px) !important; /* Центрирование фона с учетом смещения */
-  top: 0 !important;
-  background: none !important; /* Сам элемент f1 прозрачный */
-  overflow: visible;
-  transition: all 0.5s ease;
-  z-index: 1; /* Под картинкой скина */
-  clip-path: none !important; /* Убираем обрезку, если была */
+.winnerFinal > .f1 {
+    box-sizing: border-box;
+    position: absolute;
+    width: 280px !important;
+    height: 403px !important;
+    left: -17px !important;
+    top: 0 !important;
+    background: none !important;
+    overflow: visible;
+    transition: all 0.5s ease;
+    z-index: 1;
+    clip-path: none !important;
 }
-.winnerFinal > .f1::before { /* Псевдоэлемент для изображения фона */
-  content: "";
-  position: absolute;
-  top: -35px; /* Смещение фона вверх */
-  left: 0;
-  width: 280px; /* Ширина изображения фона */
-  height: calc(403px + 35px); /* Высота изображения фона */
-  background: url('/img/background.png') no-repeat center -5px !important; /* Путь к фону победителя */
-  background-size: contain !important;
-  z-index: -1; /* За самим f1 */
+.winnerFinal > .f1::before {
+    content: "";
+    position: absolute;
+    top: -35px;
+    left: 0;
+    width: 280px;
+    height: calc(403px + 35px);
+    background: url('/img/background.png') no-repeat center -5px !important;
+    background-size: contain !important;
+    z-index: -1;
 }
-
 .winnerFinal > .skinPhoto {
-  position: absolute;
-  width: 256px; /* Ширина картинки скина */
-  height: 157px; /* Высота картинки скина */
-  left: calc(50% - 256px/2 - 5px) !important; /* Центрирование с учетом смещения */
-  top: 47px !important; /* Положение картинки скина на фоне */
-  background-size: contain; /* Чтобы весь скин был виден */
-  background-position: center;
-  background-repeat: no-repeat;
-  z-index: 2; /* Поверх фона f1 */
+    position: absolute;
+    width: 256px;
+    height: 157px;
+    left: -05px;
+    top: 47px;
+    background-size: cover;
+    background-position: center;
+    z-index: 2;
 }
-
 .winnerFinal > .weaponType {
-  position: absolute;
-  width: 200px;
-  height: auto; /* Автоматическая высота */
-  left: 50%; /* Центрирование */
-  transform: translateX(-50%); /* Точное центрирование */
-  top: 14px !important; /* Положение над названием скина */
-  font-family: 'Blender Pro', sans-serif;
-  font-weight: 700;
-  font-size: 20px;
-  line-height: 1.2; /* Адаптивная высота строки */
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-transform: uppercase;
-  color: #7DBFA6 !important; /* Цвет типа оружия */
-  z-index: 2;
-  text-align: center;
-  padding: 2px 0;
+    position: absolute;
+    width: 200px;
+    height: 8px;
+    left: 32%;
+    transform: translateX(-50%);
+    top: 14px;
+    font-family: 'Blender Pro', sans-serif;
+    font-weight: 700;
+    font-size: 20px;
+    line-height: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-transform: uppercase;
+    color: #7DBFA6 !important;
+    z-index: 2;
+    text-align: center;
 }
 
 .winnerFinal > .skinName {
-  position: absolute;
-  width: 230px; /* Ширина для названия */
-  height: auto;
-  left: 50%;
-  transform: translateX(-50%);
-  top: 33px !important; /* Положение под типом оружия */
-  font-family: 'Blender Pro', sans-serif;
-  font-weight: 700;
-  font-size: 21px;
-  line-height: 1.2;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-transform: uppercase;
-  color: #D7FFF0 !important; /* Цвет названия скина */
-  z-index: 2;
-  text-align: center;
-  padding: 2px 0;
+    position: absolute;
+    width: 230px;
+    height: 10px;
+    left: 32%;
+    transform: translateX(-50%);
+    top: 33px;
+    font-family: 'Blender Pro', sans-serif;
+    font-weight: 700;
+    font-size: 21px;
+    line-height: 13px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-transform: uppercase;
+    color: #D7FFF0 !important;
+    z-index: 2;
+    text-align: center;
 }
 
-.winnerFinal > .winner { /* Текст "ПОБЕДИТЕЛЬ" */
-  position: absolute;
-  width: auto; /* Автоматическая ширина по содержимому */
-  padding: 0 10px;
-  height: auto;
-  left: 50%;
-  transform: translateX(-50%);
-  top: 220px !important; /* Положение под никнеймом */
-  font-family: 'Blender Pro', sans-serif;
-  font-weight: 700;
-  font-size: 21px;
-  line-height: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-transform: uppercase;
-  color: #9289B1; /* Цвет текста "winner" */
-  z-index: 2;
-  text-align: center;
+.winnerFinal > .winner {
+    position: absolute;
+    width: 68px;
+    height: 13px;
+    left: 32%;
+    transform: translateX(-50%);
+    top: 220px;
+    font-family: 'Blender Pro', sans-serif;
+    font-weight: 700;
+    font-size: 21px;
+    line-height: 73.43%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-transform: uppercase;
+    color: #9289B1;
+    z-index: 2;
+    text-align: center;
 }
 
 .winnerFinal > .participantsNickname {
-  position: absolute;
-  width: 230px; /* Ширина для никнейма */
-  height: auto;
-  left: 50%;
-  transform: translateX(-50%);
-  top: 199.6px !important; /* Положение над текстом "winner" */
-  font-family: 'Blender Pro', sans-serif;
-  font-weight: 900;
-  font-size: 20px;
-  line-height: 1.2;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-transform: uppercase;
-  color: #FFFFFF !important; /* Цвет никнейма */
-  z-index: 2;
-  text-align: center;
-  padding: 2px 0;
-}
-
-
-/* === Стили для Истории Победителей === */
-
-/* Кнопка Истории */
-#historyButton {
-  position: fixed;
-  top: 10px; /* Отступ сверху */
-  right: 10px; /* Отступ справа */
-  z-index: 10001; /* Поверх счетчика участников, но ниже других оверлеев если нужно */
-  padding: 10px 15px;
-  background-color: #2c3e50; /* Темно-сине-серый, сочетающийся с темой */
-  color: white;
-  border: 1px solid #34495e;
-  border-radius: 5px;
-  cursor: pointer;
-  font-family: 'Roboto', sans-serif;
-  font-size: 14px;
-  transition: background-color 0.3s, transform 0.2s;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-}
-
-#historyButton:hover {
-  background-color: #34495e;
-  transform: translateY(-1px);
-}
-
-/* Стили Модального Окна Истории */
-#historyModalOverlay {
-  display: none; /* Скрыто по умолчанию */
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.85); /* Более темный фон */
-  z-index: 20000; /* Очень высокий z-index */
-  justify-content: center;
-  align-items: center;
-  backdrop-filter: blur(4px); /* Эффект размытия фона */
-}
-
-#historyModalContent {
-  background: linear-gradient(145deg, #1f2c47, #131a2e); /* Градиентный фон */
-  padding: 25px;
-  border-radius: 12px;
-  width: 90%;
-  max-width: 700px;
-  max-height: 85vh;
-  overflow-y: auto;
-  position: relative;
-  color: #e0e0e0;
-  border: 1px solid #4a5a8a; /* Светлая граница */
-  box-shadow: 0 8px 30px rgba(0,0,0,0.5);
-  font-family: 'Roboto', sans-serif;
-}
-
-#closeHistoryModal {
-  position: absolute;
-  top: 12px;
-  right: 18px;
-  font-size: 28px;
-  font-weight: bold;
-  cursor: pointer;
-  color: #a0a0a0; /* Приглушенный цвет для крестика */
-  transition: color 0.3s, transform 0.2s;
-}
-
-#closeHistoryModal:hover {
-  color: #ffffff;
-  transform: scale(1.1);
-}
-
-#historyModalContent h2 {
-  text-align: center;
-  color: #ffffff;
-  border-bottom: 1px solid #4a5a8a;
-  padding-bottom: 15px;
-  margin-top: 0;
-  margin-bottom: 20px;
-  font-size: 24px;
-  font-weight: 500; /* Немного легче шрифт для заголовка */
-}
-
-#winnersHistoryList {
-  list-style: none;
-  padding: 0;
-}
-
-#winnersHistoryList li {
-  background-color: rgba(255, 255, 255, 0.05); /* Полупрозрачный фон элемента */
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
-  padding: 15px;
-  margin-bottom: 12px;
-  display: flex;
-  align-items: center;
-  gap: 20px;
-  transition: background-color 0.3s, transform 0.2s;
-}
-#winnersHistoryList li:hover {
-    background-color: rgba(255, 255, 255, 0.1);
-    transform: translateY(-2px);
-}
-
-#winnersHistoryList li:last-child {
-  margin-bottom: 0;
-}
-
-#winnersHistoryList li img {
-  width: 60px;
-  height: auto;
-  max-height: 60px;
-  object-fit: contain; /* Чтобы весь скин был виден */
-  border-radius: 5px;
-  border: 1px solid #65718a;
-  background-color: rgba(0,0,0,0.3); /* Фон для прозрачных изображений */
-}
-
-#winnersHistoryList li .winner-info {
-  display: flex;
-  flex-direction: column;
-  gap: 5px; /* Увеличен отступ между строками информации */
-  flex-grow: 1; /* Чтобы текст занимал доступное пространство */
-}
-
-#winnersHistoryList li .winner-nickname {
-  font-weight: bold;
-  font-size: 1.25em; /* Крупнее никнейм */
-  color: #ffffff;
-}
-
-#winnersHistoryList li .winner-prize,
-#winnersHistoryList li .winner-rarity {
-  font-size: 1em;
-  color: #c0c8e0;
-  word-break: break-word; /* Перенос длинных названий скинов */
-}
-#winnersHistoryList li .winner-prize strong,
-#winnersHistoryList li .winner-rarity strong {
-    color: #909dc0; /* Цвет для "Выиграл:", "Редкость:" */
-    margin-right: 5px;
-}
-
-#winnersHistoryList li .winner-timestamp {
-  font-size: 0.8em;
-  color: #808a9a;
-  margin-top: 6px;
-}
-
-/* Скроллбар для модального окна истории */
-#historyModalContent::-webkit-scrollbar {
-  width: 8px;
-}
-#historyModalContent::-webkit-scrollbar-track {
-  background: rgba(0,0,0,0.2); /* Полупрозрачный трек */
-  border-radius: 10px;
-}
-#historyModalContent::-webkit-scrollbar-thumb {
-  background-color: #4a5a8a; /* Цвет ползунка */
-  border-radius: 10px;
-  border: 2px solid rgba(0,0,0,0.2); /* Добавляет "отступ" вокруг ползунка */
-}
-#historyModalContent::-webkit-scrollbar-thumb:hover {
-  background-color: #5e70c0;
+    position: absolute;
+    width: 230px;
+    height: 12px;
+    left: 32%;
+    transform: translateX(-50%);
+    top: 199.6px;
+    font-family: 'Blender Pro', sans-serif;
+    font-weight: 900;
+    font-size: 20px;
+    line-height: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-transform: uppercase;
+    color: #FFFFFF;
+    z-index: 2;
+    text-align: center;
 }
