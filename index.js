@@ -116,7 +116,7 @@ app.post('/start-collection', (_req, res) => {
   broadcast({ type:'updateParticipants', participants });
   // ВОТ ЭТА СТРОКА ВОЗВРАЩЕНА:
   chat.say(CHANNEL_NAME,
-    `🎉 Giveaway started! Buy a "Galaxy Key" using channel points to enter! 🎉`
+    `🎉 Giveaway started! Buy a "Galaxy Key" using channel points to enter! `
   );
   console.log('[ADMIN] start-collection');
   res.json({ success:true });
