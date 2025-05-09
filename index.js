@@ -116,7 +116,7 @@ app.post('/start-collection', (_req, res) => {
   broadcast({ type:'updateParticipants', participants });
   // ВОТ ЭТА СТРОКА ВОЗВРАЩЕНА:
   chat.say(CHANNEL_NAME,
-    `🎉 ${REWARD_TITLE} giveaway started — redeem to join!`
+    `🎉 Giveaway started! Buy a "Galaxy Key" using channel points to enter! 🎉`
   );
   console.log('[ADMIN] start-collection');
   res.json({ success:true });
@@ -139,7 +139,7 @@ app.post('/roll', (_req, res) => {
 
   setTimeout(() => {
     chat.say(CHANNEL_NAME,
-      `Congratulations @${winner}, you won ${REWARD_TITLE}!`
+      `Congratulations @${winner}, you won!`
     );
   }, chatDelay * 1000);
 
@@ -227,7 +227,7 @@ chat.on('message', (_ch, tags, msg, self) => {
         participants.push(disp);
         fs.writeFileSync(PARTS_PATH, JSON.stringify(participants, null, 2), 'utf-8');
         console.log(`➕ Added ${disp}`);
-        chat.say(CHANNEL_NAME, `@${disp}, you've entered the "${REWARD_TITLE}" giveaway!`);
+        chat.say(CHANNEL_NAME, `@${disp}, you've entered the giveaway!`);
         broadcast({ type: 'updateParticipants', participants });
       }
     }
