@@ -231,8 +231,8 @@ function startNewCollectionLogic(isAutoRestart = false) { // Переимено�
     broadcast({ type: 'giveawayStatusUpdate', active: collecting, statusKey: 'status.active' });
 
     const startMessage = isAutoRestart
-        ? `🎉 New skins giveaway has started! Buy a "Galaxy key" for reward points to participate in opening a case on halftime!!`
-        : `🎉 Skins giveaway has started! Buy a "Galaxy key" for reward points to participate in opening a case on halftime!`;
+        ? `🎉 The skins giveaway is now live! Spend your reward points to purchase a “Galaxy Key” and take part in the halftime case opening!`
+        : `🎉 The skins giveaway has started! Use your reward points to purchase a “Galaxy Key” and join the halftime case opening!`;
     chat.say(CHANNEL_NAME, startMessage);
 
     console.log(`[ADMIN] start-collection ${isAutoRestart ? '(автоматический перезапуск)' : ''}`);
@@ -293,12 +293,12 @@ app.post('/roll', (_req, res) => {
 
        if (actualWonSkin.weapontype && actualWonSkin.weapontype.trim() !== "") {
            // Если тип оружия существует и не пустой (после удаления пробелов)
-           prizeMessageText = `${actualWonSkin.weapontype.trim()} : ${skinNamePart}`;
+           prizeMessageText = `${actualWonSkin.weapontype.trim()}|${skinNamePart}`;
        } else {
            // Если тип оружия отсутствует или пуст, показываем только название скина/награды
            prizeMessageText = skinNamePart;
        }
-       chat.say(CHANNEL_NAME, `🎉 Congratulations @${winner}, you won ${prizeMessageText}!`);
+       chat.say(CHANNEL_NAME, `🎉 Congratulations @${winner}, you’ve won a ${prizeMessageText}!`);
    }, chatDelay * 1000);
 
     broadcast({
