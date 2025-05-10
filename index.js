@@ -116,7 +116,7 @@ app.post('/start-collection', (_req, res) => {
   broadcast({ type:'updateParticipants', participants });
   // ВОТ ЭТА СТРОКА ВОЗВРАЩЕНА:
   chat.say(CHANNEL_NAME,
-    `🎉 Giveaway started! Buy a "Galaxy Key" using channel points to enter! `
+    `🎉 Giveaway has started, buy a "GALAXY Key" for reward points!`
   );
   console.log('[ADMIN] start-collection');
   res.json({ success:true });
@@ -139,7 +139,7 @@ app.post('/roll', (_req, res) => {
 
   setTimeout(() => {
     chat.say(CHANNEL_NAME,
-      `Congratulations @${winner}, you won!`
+      `Congratulations @${winner}, you won ${REWARD_TITLE}!`
     );
   }, chatDelay * 1000);
 
@@ -215,7 +215,7 @@ chat.on('message', (_ch, tags, msg, self) => {
     userId:       user.id   // <<< вот здесь важно передать userId
   });
 
-  // 4) Теперь подписываемся на EventSub через 
+  // 4) Теперь подписываемся на EventSub через WS
   const listener = new EventSubWsListener({ authProvider: authProv, apiClient: api });
   listener.onChannelRedemptionAddForReward(
     user.id,
