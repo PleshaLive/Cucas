@@ -42,11 +42,16 @@
                         <span data-i18n-value-default="label.unknown" data-i18n-value-default-key="label.unknown">Unknown</span>
                     </span>
                 </div>
+                <div id="giveawayLiveStatusItem" class="status-item">
+                    <span class="status-label" data-i18n="label.giveawayStatus"><i class="fas fa-gift"></i> Giveaway Status:</span>
+                    <span class="status-value gms-dynamic" data-i18n-value-default="status.idle" data-i18n-value-default-key="status.idle">
+                        </span>
+                </div>
             </div>
 
             </div>
         <div class="sidebar-footer">
-             <p>&copy; 2024 Settings Panel</p>
+             <p>&copy; 2024-2025 Settings Panel</p>
         </div>
     </aside>
 
@@ -55,8 +60,7 @@
             <h1><i class="fas fa-cogs"></i> <span data-i18n="header.settings">Application Settings</span></h1>
             <div id="globalStatusMessage" class="global-status-message">Message</div>
             <div class="header-action-buttons">
-                <button type="button" id="openOverlaysBtn" class="app-button secondary" onclick="window.location.href='https://galaxytimer-production.up.railway.app/'">
-                    <i class="fas fa-layer-group"></i> <span data-i18n="btn.openOverlays">Overlays</span>
+                <button type="button" id="openOverlaysBtn" class="app-button secondary" onclick="window.open('https://galaxytimer-production.up.railway.app/', '_blank')"> <i class="fas fa-layer-group"></i> <span data-i18n="btn.openOverlays">Overlays</span>
                 </button>
                 <button type="submit" form="settingsForm" id="saveAllSettingsBtn" class="app-button primary">
                     <i class="fas fa-save"></i> <span data-i18n="btn.saveAllSettings">Save Settings</span>
@@ -89,7 +93,7 @@
                         <div id="presetSkinSelect" class="form-group" style="display:none;">
                             <label for="fixedSkin" data-i18n="label.fixedSkin"><i class="fas fa-crosshairs"></i> Select Preset Skin</label>
                             <select id="fixedSkin" class="control-select styled-select">
-                            </select>
+                                </select>
                         </div>
                     </div>
                 </section>
@@ -173,11 +177,11 @@
                 "sidebar.title": "Controls",
                 "header.settings": "Application Settings",
                 "btn.saveAllSettings": "Save Settings",
-                "btn.openOverlays": "Overlays", 
+                "btn.openOverlays": "Overlays",
                 "sidebar.overlayControls": "Overlay", "btn.startRuffle": "Start Ruffle", "btn.openCase": "Open Case", "btn.rollCase": "Roll Case",
                 "sidebar.statusInfo": "Status", "label.participants": "Participants:", "label.dropModeStatus": "Drop Mode:", "label.unknown": "Unknown",
                 "label.weaponTypeShort": "Type:", "label.skinNameShort": "Skin:",
-                "sidebar.language": "Language", // Эта строка перевода может остаться, если где-то еще используется ключ, но сам блок убран
+                "sidebar.language": "Language",
                 "section.generalParams": "General Parameters", "label.chatDelay": "Chat Delay (sec)",
                 "section.dropMode": "Skin Drop Mode", "label.selectDropMode": "Mode", "label.random": "Random by Rarity", "label.preset": "Preset Skin",
                 "label.fixedSkin": "Select Preset Skin", "label.selectSkinPlaceholder": "Select a skin...", "label.noSkinSelected": "No skin selected",
@@ -191,7 +195,12 @@
                 "error.skinNameRequired": "Error: Skin name is required for all entries in the table.",
                 "btn.saving": "Saving...", "success.settingsSaved": "Settings saved successfully!", "btn.saved": "Saved!",
                 "error.savingFailed": "Error saving settings", "btn.saveError": "Error!",
-                "error.loadingSettings": "Error loading settings", "warning.emptySettings": "Warning: Received empty settings. Using defaults."
+                "error.loadingSettings": "Error loading settings", "warning.emptySettings": "Warning: Received empty settings. Using defaults.",
+                // НОВЫЕ ПЕРЕВОДЫ СТАТУСА РОЗЫГРЫША
+                "label.giveawayStatus": "Giveaway Status:",
+                "status.active": "Running",
+                "status.idle": "Not Running",
+                "status.pendingRestart": "Winner picked, restarting soon..."
             },
             ru: {
                 "sidebar.title": "Управление",
@@ -215,13 +224,18 @@
                 "error.skinNameRequired": "Ошибка: Имя скина обязательно для всех записей в таблице.",
                 "btn.saving": "Сохранение...", "success.settingsSaved": "Настройки успешно сохранены!", "btn.saved": "Сохранено!",
                 "error.savingFailed": "Ошибка сохранения настроек", "btn.saveError": "Ошибка!",
-                "error.loadingSettings": "Ошибка загрузки настроек", "warning.emptySettings": "Внимание: Получены пустые настройки. Используются значения по умолчанию."
+                "error.loadingSettings": "Ошибка загрузки настроек", "warning.emptySettings": "Внимание: Получены пустые настройки. Используются значения по умолчанию.",
+                // НОВЫЕ ПЕРЕВОДЫ СТАТУСА РОЗЫГРЫША
+                "label.giveawayStatus": "Статус розыгрыша:",
+                "status.active": "Запущен",
+                "status.idle": "Не запущен",
+                "status.pendingRestart": "Победитель выбран, скоро перезапуск..."
             },
             uk: {
                 "sidebar.title": "Керування",
                 "header.settings": "Налаштування Додатку",
                 "btn.saveAllSettings": "Зберегти налаштування",
-                "btn.openOverlays": "Оверлеї", 
+                "btn.openOverlays": "Оверлеї",
                 "sidebar.overlayControls": "Оверлей", "btn.startRuffle": "Start Ruffle", "btn.openCase": "Open Case", "btn.rollCase": "Roll Case",
                 "sidebar.statusInfo": "Статус", "label.participants": "Учасники:", "label.dropModeStatus": "Режим дропу:", "label.unknown": "Невідомо",
                 "label.weaponTypeShort": "Тип:", "label.skinNameShort": "Скін:",
@@ -239,10 +253,17 @@
                 "error.skinNameRequired": "Помилка: Ім'я скіна є обов'язковим для всіх записів у таблиці.",
                 "btn.saving": "Збереження...", "success.settingsSaved": "Налаштування успішно збережено!", "btn.saved": "Збережено!",
                 "error.savingFailed": "Помилка збереження налаштувань", "btn.saveError": "Помилка!",
-                "error.loadingSettings": "Помилка завантаження налаштувань", "warning.emptySettings": "Увага: Отримано порожні налаштування. Використовуються значення за замовчуванням."
+                "error.loadingSettings": "Помилка завантаження налаштувань", "warning.emptySettings": "Увага: Отримано порожні налаштування. Використовуються значення за замовчуванням.",
+                 // НОВЫЕ ПЕРЕВОДЫ СТАТУСА РОЗЫГРЫША
+                "label.giveawayStatus": "Статус розіграшу:",
+                "status.active": "Запущено",
+                "status.idle": "Не запущено",
+                "status.pendingRestart": "Переможця обрано, незабаром перезапуск..."
             }
         };
-        let currentLang = localStorage.getItem('appLanguage') || 'en'; 
+        let currentLang = localStorage.getItem('appLanguage') || 'en';
+        let ws; // WebSocket переменная
+        let lastKnownGiveawayServerState = { active: false, statusKey: 'status.idle' }; // Для хранения последнего состояния
 
         function getTranslation(key, lang = currentLang) {
             return translations[lang]?.[key] || translations['en']?.[key] || key;
@@ -251,7 +272,7 @@
         function setLanguage(lang) {
             currentLang = lang;
             localStorage.setItem('appLanguage', lang);
-            document.documentElement.lang = lang; 
+            document.documentElement.lang = lang;
             document.querySelectorAll('[data-i18n]').forEach(el => {
                 const key = el.dataset.i18n;
                 const translation = getTranslation(key, lang);
@@ -273,7 +294,7 @@
                     }
                     if (targetNode) {
                         textContainer = targetNode;
-                    } else { 
+                    } else {
                         const simpleSpan = Array.from(el.childNodes).find(node => node.tagName === 'SPAN' && !node.hasAttributes());
                         if (simpleSpan) textContainer = simpleSpan;
                     }
@@ -290,18 +311,18 @@
                         } else {
                                 textContainer.textContent = translation;
                         }
-                    } else if (textContainer !== el && textContainer.tagName === 'SPAN') { 
+                    } else if (textContainer !== el && textContainer.tagName === 'SPAN') {
                         textContainer.textContent = translation;
                     } else if (el.title && (el.dataset.i18nTitleKey === key || el.dataset.i18n === key)) {
                         el.title = translation;
-                    } else { 
-                        let mainTextSpan = el.querySelector('span:not([class])'); 
+                    } else {
+                        let mainTextSpan = el.querySelector('span:not([class])');
                         if (mainTextSpan) {
                             mainTextSpan.textContent = translation;
                         } else {
                             let textNode = Array.from(el.childNodes).reverse().find(node => node.nodeType === Node.TEXT_NODE && node.textContent.trim() !== '');
-                            if (textNode) { textNode.textContent = ` ${translation}`; } 
-                            else if (textContainer === el && !el.querySelector('i')) { 
+                            if (textNode) { textNode.textContent = ` ${translation}`; }
+                            else if (textContainer === el && !el.querySelector('i')) {
                                 el.textContent = translation;
                             }
                         }
@@ -319,7 +340,7 @@
                 const currentText = el.textContent.trim();
                 const isDefault = ['en', 'ru', 'uk'].some(lng => currentText === (translations[lng]?.[valueDefaultKey]));
 
-                if (isDefault || currentText === el.dataset.i18nValueDefault) { 
+                if (isDefault || currentText === el.dataset.i18nValueDefault) {
                     el.textContent = getTranslation(valueDefaultKey, lang);
                 }
             });
@@ -331,6 +352,61 @@
                     fn.textContent = getTranslation("label.chooseFile");
                 }
             });
+            // Статус розыгрыша должен обновиться автоматически, т.к. у gms-dynamic есть data-i18n-value-default-key
+        }
+
+        function connectWebSocket() {
+            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsUrl = `${protocol}//${window.location.host}`;
+            ws = new WebSocket(wsUrl);
+
+            ws.onopen = () => {
+                console.log('WebSocket подключен к серверу для страницы настроек.');
+                // Сервер теперь сам отправляет начальный статус и участников при подключении
+            };
+
+            ws.onmessage = (event) => {
+                try {
+                    const message = JSON.parse(event.data);
+                    console.log('WS Сообщение получено:', message); // Для отладки
+                    if (message.type === 'updateParticipants') {
+                        const countElement = document.querySelector('.pc-dynamic');
+                        if (countElement && typeof message.participants !== 'undefined') {
+                            countElement.textContent = message.participants.length;
+                        }
+                    } else if (message.type === 'giveawayStatusUpdate') {
+                        lastKnownGiveawayServerState = { active: message.active, statusKey: message.statusKey };
+                        updateGiveawayStatusDisplay(message.active, message.statusKey);
+                    } else if (message.type === 'settings-updated') {
+                        console.log('Настройки обновлены на сервере. Рекомендуется перезагрузить или обновить данные.');
+                        // showMessage('Settings have been updated on the server. You might want to refresh.', 'info');
+                    }
+                } catch (error) {
+                    console.error('Ошибка обработки WebSocket сообщения:', error);
+                }
+            };
+
+            ws.onclose = () => {
+                console.log('WebSocket отключен. Попытка переподключения через 3 секунды...');
+                setTimeout(connectWebSocket, 3000);
+            };
+
+            ws.onerror = (error) => {
+                console.error('WebSocket ошибка:', error);
+                // ws.close(); // Можно добавить, чтобы убедиться, что соединение закрыто перед переподключением
+            };
+        }
+
+        function updateGiveawayStatusDisplay(isActive, statusKeyToUse) {
+            const statusElement = document.querySelector('.gms-dynamic');
+            const effectiveStatusKey = statusKeyToUse || (isActive ? 'status.active' : 'status.idle');
+
+            if (statusElement) {
+                statusElement.textContent = getTranslation(effectiveStatusKey);
+                // Добавляем/обновляем класс для возможной стилизации в CSS и для data-i18n
+                statusElement.className = `status-value gms-dynamic status-${effectiveStatusKey.split('.').pop()}`;
+                statusElement.dataset.i18nValueDefaultKey = effectiveStatusKey;
+            }
         }
 
 
@@ -424,6 +500,7 @@
             fs.innerHTML = '';
             const placeholderOption = new Option(getTranslation('label.selectSkinPlaceholder'), "");
             placeholderOption.disabled = true;
+            placeholderOption.selected = true; // Убедимся, что плейсхолдер выбран, если нет других опций
             fs.add(placeholderOption);
 
             document.querySelectorAll('#skinsTable tbody tr').forEach((tr, i) => {
@@ -433,7 +510,7 @@
             });
 
             if (prevValue !== null && prevValue !== '' && fs.querySelector(`option[value="${prevValue}"]`)) { fs.value = prevValue; }
-            else { fs.value = ""; }
+            else { fs.value = ""; } // Если предыдущее значение не найдено, сбрасываем на плейсхолдер
             updateSidebarDropStatus();
         }
 
@@ -633,26 +710,26 @@
         }
 
         function init(){
-            fetchCount();
-            // Удален код, связанный с кнопками lang-btn-sidebar, так как сами кнопки удалены
-            /*
-            const langBtns = document.querySelectorAll('.lang-btn-sidebar');
-            langBtns.forEach(b => {
-                b.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    setLanguage(b.dataset.lang);
-                    langBtns.forEach(btn => btn.classList.remove('active'));
-                    b.classList.add('active');
+            fetchCount(); // Для первоначальной загрузки счетчика
+            connectWebSocket(); // Инициализируем WebSocket соединение
+
+            // Запрос начального статуса розыгрыша при загрузке страницы
+            fetch('/get-giveaway-status')
+                .then(r => r.ok ? r.json() : Promise.reject(`HTTP error ${r.status}: ${r.statusText}`))
+                .then(data => {
+                    if (data && typeof data.active !== 'undefined' && data.statusKey) {
+                        lastKnownGiveawayServerState = { active: data.active, statusKey: data.statusKey };
+                        updateGiveawayStatusDisplay(data.active, data.statusKey);
+                    } else {
+                         console.warn('Initial giveaway status data is incomplete:', data);
+                         updateGiveawayStatusDisplay(false, 'status.idle'); // Фоллбэк
+                    }
+                })
+                .catch(e => {
+                    console.error('Error fetching initial giveaway status:', e);
+                    updateGiveawayStatusDisplay(false, 'status.idle'); // Фоллбэк в случае ошибки сети
                 });
-            });
-            langBtns.forEach(btn => btn.classList.remove('active')); 
-            const activeLangButton = document.querySelector(`.lang-btn-sidebar[data-lang="${currentLang}"]`);
-            if (activeLangButton) activeLangButton.classList.add('active');
-            else { 
-                const enButton = document.querySelector(`.lang-btn-sidebar[data-lang="en"]`);
-                if (enButton) enButton.classList.add('active');
-            }
-            */
+
 
             document.getElementById('btn-start')?.addEventListener('click', ()=>fetch('/start-collection',{method:'POST'}));
             document.getElementById('btn-open')?.addEventListener('click', ()=>fetch('/open-overlay',{method:'POST'}));
@@ -673,7 +750,7 @@
                 document.getElementById('chatDelay').value = cfg.chatDelay ?? 130;
                 document.querySelector('#skinsTable tbody').innerHTML = '';
                 (cfg.skins||[]).forEach(s => addSkinRow(s));
-                updateFixedSkinOptions(); 
+                updateFixedSkinOptions();
 
                 const cdm = cfg.dropMode || 'random';
                 if(dmSel) dmSel.value = cdm;
@@ -682,7 +759,7 @@
                 if (cdm==='preset' && cfg.skins && cfg.skins.length > 0 && fsSel) {
                     if (cfg.fixedSkinIndex !== null && cfg.fixedSkinIndex >= 0 && cfg.fixedSkinIndex < cfg.skins.length) {
                         fsSel.value = cfg.fixedSkinIndex;
-                    } else if (cfg.fixedSkin?.imageName) { 
+                    } else if (cfg.fixedSkin?.imageName) {
                         const idx = (cfg.skins||[]).findIndex(s => s.imageName === cfg.fixedSkin.imageName);
                         fsSel.value = idx >= 0 ? idx : "";
                     } else { fsSel.value = ""; }
@@ -693,16 +770,20 @@
                 const lChances = cfg.rarityChances || {};
                 for(const k in defChances){ const el=document.getElementById('chance'+k.replace(/\W/g,'')); if(el) el.value = (typeof lChances[k]==='number')?lChances[k]:defChances[k];}
 
-                setLanguage(currentLang); // Устанавливаем язык по умолчанию или из localStorage
-                updateSidebarDropStatus(); 
             })
             .catch(e => {
                 console.error('Error loading settings:', e);
                 showMessage(getTranslation('error.loadingSettings') + `: ${e.message}. Defaults used.`, 'error');
                 const defChances={'Mil-Spec':79.923,'Restricted':15.984,'Classified':3.197,'Covert':0.639,'Rare Special Items':0.256};
                 for(const k in defChances){ const el=document.getElementById('chance'+k.replace(/\W/g,'')); if(el) el.value = defChances[k];}
-                setLanguage(currentLang); // Устанавливаем язык по умолчанию или из localStorage в случае ошибки
-                updateSidebarDropStatus(); 
+            })
+            .finally(() => {
+                // Установка языка и обновление статусов должно происходить после загрузки всех данных
+                setLanguage(currentLang);
+                updateSidebarDropStatus(); // Это обновит статус дроп режима
+                // Статус розыгрыша уже должен быть установлен через fetch /get-giveaway-status или WebSocket
+                // Если fetch /get-giveaway-status еще не завершился, setLanguage может примениться раньше,
+                // но data-i18n-value-default-key на элементе gms-dynamic должен обеспечить правильный текст при обновлении
             });
         }
         document.addEventListener('DOMContentLoaded', init);

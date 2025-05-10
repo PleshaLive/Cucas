@@ -448,3 +448,14 @@ h2 { font-size: 1.25rem; } h3 { font-size: 1.0rem; }
         /* gap var(--spacing-sm) уже задан и будет работать как вертикальный отступ */
     }
   }
+
+  .status-value.gms-dynamic.status-active {
+    color: var(--color-success); /* Зеленый для активного */
+    font-weight: var(--font-weight-bold);
+}
+.status-value.gms-dynamic.status-pendingRestart {
+    color: var(--color-warning); /* Желтый для ожидания */
+}
+.status-value.gms-dynamic.status-idle {
+    color: var(--color-text-muted); /* Серый для неактивного */
+}
