@@ -96,8 +96,8 @@
         .form-group input[type="text"],
         .form-group input[type="password"] {
             width: 100%;
-            padding: var(--spacing-sm, 0.75rem); /* Увеличил паддинг для комфорта */
-            padding-left: calc(var(--spacing-md, 1rem) + var(--spacing-md, 1rem) + var(--spacing-xs, 0.25rem)); /* Место для иконки */
+            padding: var(--spacing-sm, 0.75rem);
+            padding-left: calc(var(--spacing-md, 1rem) + var(--spacing-md, 1rem) + var(--spacing-xs, 0.25rem)); 
             border-radius: var(--border-radius-md, 8px);
             border: 1px solid var(--color-border-input, #2A244A);
             background-color: var(--color-surface-secondary, #221C3B);
@@ -119,23 +119,22 @@
         }
         .form-group-checkbox input[type="checkbox"] {
             accent-color: var(--color-primary-base, #7A64B9);
-            width: 18px; /* Немного увеличил */
+            width: 18px; 
             height: 18px;
             cursor: pointer;
         }
         .form-group-checkbox label {
-            margin-bottom: 0; /* Убрал отступ снизу у метки чекбокса */
+            margin-bottom: 0; 
             color: var(--color-text-secondary, #B0B8C5);
             cursor: pointer;
             font-size: 0.9rem;
         }
-        .login-button { /* Используем класс app-button из settings.css, если он есть */
+        .login-button {
             width: 100%;
             padding: var(--spacing-md, 0.9rem);
             font-size: 1.05rem;
             font-weight: var(--font-weight-semibold, 600);
         }
-        /* Стили для app-button, если settings.css не загружен или не содержит их */
         .app-button {
             display: inline-flex;
             align-items: center;
@@ -147,7 +146,7 @@
             cursor: pointer;
             transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, transform 0.1s ease;
             border: 1px solid transparent;
-            font-size: 0.95rem; /* Базовый размер */
+            font-size: 0.95rem; 
             gap: 0.5em;
         }
         .app-button.primary {
@@ -163,7 +162,7 @@
             transform: scale(0.98);
         }
         .app-button i {
-            font-size: 0.95em; /* Размер иконки относительно текста кнопки */
+            font-size: 0.95em; 
         }
 
         .error-message {
@@ -175,7 +174,7 @@
             margin-bottom: var(--spacing-md, 1rem);
             text-align: center;
             font-size: 0.9rem;
-            display: none; /* Изначально скрыто */
+            display: none;
         }
     </style>
 </head>
@@ -216,12 +215,10 @@
             const rememberMeCheckbox = document.getElementById('rememberMe');
             const errorMessageDiv = document.getElementById('errorMessage');
 
-            // Проверяем, не был ли пользователь уже "запомнен" и не пытается ли он зайти на login.html снова
-            // Это также предотвратит бесконечный цикл, если бы что-то пошло не так с редиректом.
             if (localStorage.getItem('rememberedUserCredentials') && window.location.pathname.includes('login.html')) {
                 console.log('User was remembered. Redirecting to settings...');
-                window.location.href = '/settings.html'; // или просто 'settings.html'
-                return; // Предотвращаем дальнейшее выполнение, если пользователь уже перенаправлен
+                window.location.href = '/settings.html';
+                return; 
             }
 
             loginForm.addEventListener('submit', function(event) {
@@ -232,41 +229,37 @@
                 const username = usernameInput.value.trim();
                 const password = passwordInput.value;
 
-                // ВНИМАНИЕ: Это НЕ настоящая аутентификация.
-                // Здесь должна быть проверка на сервере.
-                // Для примера, мы просто проверяем, что поля не пустые.
                 if (!username || !password) {
                     errorMessageDiv.textContent = 'Имя пользователя и пароль обязательны.';
                     errorMessageDiv.style.display = 'block';
                     return;
                 }
 
-                // ИСКУССТВЕННАЯ ПРОВЕРКА (для примера, можно убрать или изменить)
-                // if (username !== "admin" || password !== "password") {
-                //     errorMessageDiv.textContent = 'Неверное имя пользователя или пароль.';
-                //     errorMessageDiv.style.display = 'block';
-                //     return;
-                // }
+                // === УКАЗАНЫ ВАШИ ДАННЫЕ ===
+                const CORRECT_USERNAME = "God"; 
+                const CORRECT_PASSWORD = "2007"; 
+                // ============================
+
+                if (username !== CORRECT_USERNAME || password !== CORRECT_PASSWORD) {
+                    errorMessageDiv.textContent = 'Неверное имя пользователя или пароль.';
+                    errorMessageDiv.style.display = 'block';
+                    return;
+                }
 
                 if (rememberMeCheckbox.checked) {
-                    // Сохраняем в localStorage. ВНИМАНИЕ: ЭТО НЕБЕЗОПАСНО ДЛЯ РЕАЛЬНЫХ ДАННЫХ!
                     const credentials = {
                         username: username,
-                        // Пароль в localStorage - ОЧЕНЬ ПЛОХАЯ ИДЕЯ для продакшена.
-                        // Это сделано только для выполнения условия "запомнить чтоб больше не надо было вводить".
-                        password_DO_NOT_USE_IN_PROD: password, // Четкое указание на небезопасность
+                        password_DO_NOT_USE_IN_PROD: password, 
                         remembered: true
                     };
                     localStorage.setItem('rememberedUserCredentials', JSON.stringify(credentials));
                     console.log('Учетные данные сохранены в localStorage (НЕБЕЗОПАСНАЯ ПРАКТИКА!)');
                 } else {
-                    // Если "Запомнить меня" не выбрано, удаляем любые ранее сохраненные учетные данные
                     localStorage.removeItem('rememberedUserCredentials');
                 }
 
-                // Имитация успешного входа и перенаправление
-                console.log('Вход успешен (симуляция). Перенаправление на settings.html...');
-                window.location.href = '/settings.html'; // или просто 'settings.html'
+                console.log('Вход успешен. Перенаправление на settings.html...');
+                window.location.href = '/settings.html';
             });
         });
     </script>
