@@ -187,25 +187,8 @@
     </style>
 </head>
 <body>
-    <div id="loginModal" class="login-modal-overlay">
-    <div class="login-modal-content">
-        <h2>Login Required</h2>
-        <form id="loginForm">
-            <div class="login-form-group">
-                <label for="username">Login:</label>
-                <input type="text" id="username" name="username" required>
-            </div>
-            <div class="login-form-group">
-                <label for="password">Password:</label>
-                <input type="password" id="password" name="password" required>
-            </div>
-            <p id="loginErrorMessage"></p>
-            <button type="submit" class="login-button">Enter</button>
-        </form>
-    </div>
-</div>
 
-    <aside class="sidebar content-hidden">
+    <aside class="sidebar">
         <div class="sidebar-header">
             <h2 class="sidebar-main-title"><i class="fas fa-tools"></i> <span data-i18n="sidebar.title">Controls</span></h2>
         </div>
@@ -254,7 +237,7 @@
         </div>
     </aside>
 
-    <div class="main-container content-hidden">
+    <div class="main-container">
         <header class="main-header card-style">
             <h1><i class="fas fa-cogs"></i> <span data-i18n="header.settings">Application Settings</span></h1>
             <div id="globalStatusMessage" class="global-status-message">Message</div>
@@ -378,70 +361,10 @@
     </div>
 
 <script>
-(() => {
-    // --- НАЧАЛО КОДА АУТЕНТИФИКАЦИИ ---
-    const AUTH_KEY = 'settingsAppAuthenticatedUser';
-    const CORRECT_USERNAME = 'God';
-    const CORRECT_PASSWORD = '2007'; // ВНИМАНИЕ: небезопасно хранить пароль так в JS!
-
-    // Эти элементы должны быть определены глобально для доступа из функций аутентификации
-    // Предполагается, что HTML для loginModal уже добавлен в ваш <body> как было описано ранее
-    const loginModal = document.getElementById('loginModal');
-    const loginForm = document.getElementById('loginForm');
-    const usernameInput = document.getElementById('username');
-    const passwordInput = document.getElementById('password');
-    const loginErrorMessage = document.getElementById('loginErrorMessage');
-    // Получаем все основные элементы контента, которые нужно будет показать/скрыть
-    // Убедитесь, что классы '.sidebar' и '.main-container' действительно существуют в вашем HTML
-    const contentElementsToToggle = document.querySelectorAll('.sidebar, .main-container');
-
-    function showMainContent() {
-        if (loginModal) loginModal.style.display = 'none';
-        contentElementsToToggle.forEach(el => el.classList.remove('content-hidden'));
-        // Запускаем основную логику приложения ПОСЛЕ успешного входа
-        initializeAppLogic();
-    }
-
-    function showLogin() {
-        if (loginModal) loginModal.style.display = 'flex';
-        contentElementsToToggle.forEach(el => el.classList.add('content-hidden'));
-        if (usernameInput) usernameInput.focus();
-    }
-
-    if (loginForm) {
-        loginForm.addEventListener('submit', (event) => {
-            event.preventDefault();
-            if (!usernameInput || !passwordInput) return; // Добавим проверку на существование элементов
-            const username = usernameInput.value;
-            const password = passwordInput.value;
-
-            if (username === CORRECT_USERNAME && password === CORRECT_PASSWORD) {
-                localStorage.setItem(AUTH_KEY, 'true');
-                if (loginErrorMessage) loginErrorMessage.textContent = '';
-                showMainContent();
-            } else {
-                if (loginErrorMessage) loginErrorMessage.textContent = 'Invalid login or password.';
-                if (passwordInput) passwordInput.value = ''; // Очищаем поле пароля для безопасности
-                if (usernameInput) usernameInput.focus();
-            }
-        });
-    }
-
-    function checkAuthentication() {
-        const isAuthenticated = localStorage.getItem(AUTH_KEY);
-        if (isAuthenticated === 'true') {
-            showMainContent();
-        } else {
-            showLogin();
-        }
-    }
-    // --- КОНЕЦ КОДА АУТЕНТИФИКАЦИИ ---
-
-    // Оборачиваем ВСЮ ВАШУ СУЩЕСТВУЮЩУЮ ЛОГИКУ в эту функцию:
-    function initializeAppLogic() {
+    (()=>{
         const rarityColors = {
-            'Mil-Spec': '#4B58E3', 'Restricted': '#AF5DE5',
-            'Classified': '#F92177', 'Covert': '#E92E2E', 'Rare Special Items': '#EFA640'
+            'Mil-Spec':'#4B58E3','Restricted':'#AF5DE5',
+            'Classified':'#F92177','Covert':'#E92E2E','Rare Special Items':'#EFA640'
         };
 
         const translations = {
@@ -472,6 +395,7 @@
                 "status.active": "Running",
                 "status.idle": "Not Running",
                 "status.pendingRestart": "Winner picked, restarting soon...",
+                // +++ Переводы для истории победителей +++
                 "sidebar.winnerHistory.title": "Winner History",
                 "btn.showWinnerHistory": "Show History",
                 "winnerHistory.modal.title": "Winner History",
@@ -508,6 +432,7 @@
                 "status.active": "Запущен",
                 "status.idle": "Не запущен",
                 "status.pendingRestart": "Победитель выбран, скоро перезапуск...",
+                 // +++ Переводы для истории победителей +++
                 "sidebar.winnerHistory.title": "История Победителей",
                 "btn.showWinnerHistory": "Показать Историю",
                 "winnerHistory.modal.title": "История Победителей",
@@ -544,6 +469,7 @@
                 "status.active": "Запущено",
                 "status.idle": "Не запущено",
                 "status.pendingRestart": "Переможця обрано, незабаром перезапуск...",
+                // +++ Переводы для истории победителей +++
                 "sidebar.winnerHistory.title": "Історія Переможців",
                 "btn.showWinnerHistory": "Показати Історію",
                 "winnerHistory.modal.title": "Історія Переможців",
@@ -557,8 +483,10 @@
         let currentLang = localStorage.getItem('appLanguage') || 'en';
         let ws;
         let lastKnownGiveawayServerState = { active: false, statusKey: 'status.idle' };
-
+        
+        // +++ Переменные для модального окна истории +++
         let winnerHistoryModalEl, btnShowWinnerHistoryEl, closeWinnerHistoryModalEl, winnerHistoryContentEl;
+
 
         function getTranslation(key, lang = currentLang) {
             return translations[lang]?.[key] || translations['en']?.[key] || key;
@@ -595,15 +523,16 @@
                     }
                 }
 
-                if (el.tagName === 'INPUT' && (el.type === 'submit' || el.type === 'button')) {
-                    el.value = translation;
+
+                if (el.tagName === 'INPUT' && (el.type === 'submit' || el.type === 'button') ) {
+                        el.value = translation;
                 } else if (el.tagName === 'BUTTON') {
                     if (textContainer.nodeType === Node.TEXT_NODE) {
                         const previousSibling = textContainer.previousSibling;
                         if (previousSibling && previousSibling.nodeType === Node.ELEMENT_NODE && (previousSibling.tagName === 'I' || previousSibling.querySelector('i'))) {
-                            textContainer.textContent = ` ${translation}`;
+                                textContainer.textContent = ` ${translation}`;
                         } else {
-                            textContainer.textContent = translation;
+                                textContainer.textContent = translation;
                         }
                     } else if (textContainer !== el && textContainer.tagName === 'SPAN') {
                         textContainer.textContent = translation;
@@ -623,7 +552,7 @@
                     }
                 } else if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
                     if (el.placeholder && (el.dataset.i18nPlaceholderKey === key || el.dataset.i18n === key)) {
-                        el.placeholder = translation;
+                            el.placeholder = translation;
                     }
                 } else {
                     textContainer.textContent = translation;
@@ -631,23 +560,28 @@
             });
             document.querySelectorAll('[data-i18n-value-default-key]').forEach(el => {
                 const valueDefaultKey = el.dataset.i18nValueDefaultKey;
+                // const currentText = el.textContent.trim(); // Это может быть уже переведенный текст
+                // Лучше хранить "сырое" значение или ключ для сравнения
+                // Для простоты, просто переустанавливаем текст на основе ключа
                 el.textContent = getTranslation(valueDefaultKey, lang);
             });
 
             updateSidebarDropStatus();
             updateFixedSkinOptions();
-            document.querySelectorAll('#skinsTable .fileName').forEach(fn => {
+             document.querySelectorAll('#skinsTable .fileName').forEach(fn => {
+                // Проверяем, если текст является одним из дефолтных "Choose..." на любом языке
                 const chooseKeys = ["label.chooseFile"];
                 const isDefaultChooseText = chooseKeys.some(chooseKey => {
                     return ['en', 'ru', 'uk'].some(l => fn.textContent.trim() === getTranslation(chooseKey, l));
                 });
-                if (isDefaultChooseText || fn.textContent.trim() === "Choose...") {
+                if (isDefaultChooseText || fn.textContent.trim() === "Choose..." ) { // Дополнительная проверка на английский вариант
                     fn.textContent = getTranslation("label.chooseFile");
                 }
             });
         }
 
         function connectWebSocket() {
+            // ... (существующий код connectWebSocket)
             const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
             const wsUrl = `${protocol}//${window.location.host}`;
             ws = new WebSocket(wsUrl);
@@ -687,6 +621,7 @@
         }
 
         function updateGiveawayStatusDisplay(isActive, statusKeyToUse) {
+            // ... (существующий код updateGiveawayStatusDisplay)
             const statusElement = document.querySelector('.gms-dynamic');
             const effectiveStatusKey = statusKeyToUse || (isActive ? 'status.active' : 'status.idle');
 
@@ -697,7 +632,7 @@
             }
         }
 
-        function updateSidebarDropStatus() {
+        function updateSidebarDropStatus() { /* ... существующий код ... */ 
             const modeSelect = document.getElementById('dropMode');
             if (!modeSelect) return;
             const mode = modeSelect.value;
@@ -750,21 +685,21 @@
                 sdm.textContent = baseModeText;
             }
         }
-        function fetchCount() {
-            const countElement = document.querySelector('.pc-dynamic');
+        function fetchCount(){ /* ... существующий код ... */ 
+             const countElement = document.querySelector('.pc-dynamic');
             if (!countElement) return;
             fetch('/participants-count')
-                .then(r => r.ok ? r.json() : Promise.reject(`HTTP error ${r.status}`))
-                .then(d => {
-                    if (typeof d.count !== 'undefined') { countElement.textContent = d.count; }
-                    else { console.error('Invalid count data:', d); countElement.textContent = 'Err'; }
-                })
-                .catch(e => { console.error('Error fetching count:', e); countElement.textContent = 'Err'; });
+             .then(r=>r.ok ? r.json() : Promise.reject(`HTTP error ${r.status}`))
+             .then(d=> {
+                if (typeof d.count !== 'undefined') { countElement.textContent = d.count; }
+                else { console.error('Invalid count data:', d); countElement.textContent = 'Err'; }
+             })
+             .catch(e => { console.error('Error fetching count:', e); countElement.textContent = 'Err'; });
         }
-        async function uploadFile(file) {
+        async function uploadFile(file){ /* ... существующий код ... */ 
             const fd = new FormData(); fd.append('file', file);
             try {
-                const res = await fetch('/upload-skin', { method: 'POST', body: fd });
+                const res = await fetch('/upload-skin',{method:'POST',body:fd});
                 if (!res.ok) { const errTxt = await res.text(); throw new Error(`Upload failed: ${res.status} ${errTxt}`); }
                 return await res.json();
             } catch (error) {
@@ -773,31 +708,31 @@
                 throw error;
             }
         }
-        function updateRarityColor(selectElement) {
-            const colorIndicator = selectElement.closest('td').querySelector('.rarity-color-indicator-new');
+        function updateRarityColor(selectElement){ /* ... существующий код ... */ 
+             const colorIndicator = selectElement.closest('td').querySelector('.rarity-color-indicator-new');
             if (colorIndicator) { colorIndicator.style.backgroundColor = rarityColors[selectElement.value] || '#ccc'; }
         }
-        function updateFixedSkinOptions() {
+        function updateFixedSkinOptions(){ /* ... существующий код ... */ 
             const fs = document.getElementById('fixedSkin');
             if (!fs) return;
             const prevValue = fs.value;
             fs.innerHTML = '';
             const placeholderOption = new Option(getTranslation('label.selectSkinPlaceholder'), "");
             placeholderOption.disabled = true;
-            placeholderOption.selected = true;
+            placeholderOption.selected = true; 
             fs.add(placeholderOption);
 
             document.querySelectorAll('#skinsTable tbody tr').forEach((tr, i) => {
                 const weaponType = tr.querySelector('.weaponType').value.trim() || 'Unknown Type';
                 const skinName = tr.querySelector('.skinName').value.trim() || 'Unnamed Skin';
-                fs.add(new Option(`${weaponType} : ${skinName}`, i.toString())); // Ensure value is string for comparison
+                fs.add(new Option(`${weaponType} : ${skinName}`, i));
             });
 
             if (prevValue !== null && prevValue !== '' && fs.querySelector(`option[value="${prevValue}"]`)) { fs.value = prevValue; }
-            else { fs.value = ""; }
+            else { fs.value = ""; } 
             updateSidebarDropStatus();
         }
-        function addSkinRow(skin = {}) {
+        function addSkinRow(skin = {}) { /* ... существующий код ... */ 
             const tb = document.querySelector('#skinsTable tbody');
             if (!tb) return;
             const tr = document.createElement('tr');
@@ -811,7 +746,7 @@
                     <div class="skin-image-cell-content">
                         <div class="image-preview-wrapper">
                             <img src="${skin.image || '#'}" alt="Preview" class="skin-image-preview" style="${skin.image ? 'display:block;' : 'display:none;'}">
-                            <span class="preview-placeholder ${skin.image ? 'hidden' : ''}"><i class="fas fa-image"></i></span>
+                            <span class="preview-placeholder ${skin.image ? 'hidden': ''}"><i class="fas fa-image"></i></span>
                         </div>
                         <div class="custom-file-input-wrapper">
                             <label class="app-button tertiary small-button file-upload-button">
@@ -862,7 +797,7 @@
                 if (file) {
                     if (file.type.startsWith('image/')) {
                         const reader = new FileReader();
-                        reader.onload = function (event) {
+                        reader.onload = function(event) {
                             imgPreview.src = event.target.result;
                             imgPreview.style.display = 'block';
                             if (previewPlaceholder) previewPlaceholder.classList.add('hidden');
@@ -907,93 +842,91 @@
             nameI.oninput = updateFixedSkinOptions;
             typeI.oninput = updateFixedSkinOptions;
         }
-        function buildConfig() {
-            const cfg = {
+        function buildConfig(){ /* ... существующий код ... */ 
+             const cfg = {
                 chatDelay: 130, skins: [], dropMode: document.getElementById('dropMode').value,
                 fixedSkin: null, fixedSkinIndex: null, rarityChances: {}
             };
             const cdi = document.getElementById('chatDelay');
-            if (cdi && cdi.value.trim() !== "" && !isNaN(parseInt(cdi.value))) cfg.chatDelay = +cdi.value; else if (cdi) cdi.value = cfg.chatDelay.toString();
+            if (cdi && cdi.value.trim()!=="" && !isNaN(parseInt(cdi.value))) cfg.chatDelay = +cdi.value; else if(cdi) cdi.value=cfg.chatDelay;
 
-            document.querySelectorAll('#skinsTable tbody tr').forEach((tr, idx) => {
+            document.querySelectorAll('#skinsTable tbody tr').forEach((tr, idx)=>{
                 const fPath = tr.querySelector('.skinImage')?.dataset.filePath || '';
                 cfg.skins.push({
-                    name: tr.querySelector('.skinName')?.value || '', weapontype: tr.querySelector('.weaponType')?.value || '',
-                    image: fPath, imageName: fPath.split(/[\\/]/).pop() || '', rarity: tr.querySelector('.skinRarity')?.value || 'Mil-Spec'
+                    name: tr.querySelector('.skinName')?.value || '', weapontype: tr.querySelector('.weaponType')?.value||'',
+                    image: fPath, imageName: fPath.split(/[\\/]/).pop()||'', rarity: tr.querySelector('.skinRarity')?.value||'Mil-Spec'
                 });
             });
 
-            if (cfg.dropMode === 'preset') {
+            if (cfg.dropMode==='preset') {
                 const selIdxStr = document.getElementById('fixedSkin')?.value;
-                if (selIdxStr !== null && selIdxStr !== "" && !isNaN(selIdxStr)) {
+                if (selIdxStr!==null && selIdxStr!=="" && !isNaN(selIdxStr)) {
                     const idx = parseInt(selIdxStr, 10);
-                    if (idx >= 0 && idx < cfg.skins.length) { cfg.fixedSkin = cfg.skins[idx]; cfg.fixedSkinIndex = idx; }
-                    else { cfg.fixedSkin = null; cfg.fixedSkinIndex = null; }
-                } else { cfg.fixedSkin = null; cfg.fixedSkinIndex = null; }
+                    if (idx>=0 && idx<cfg.skins.length) { cfg.fixedSkin=cfg.skins[idx]; cfg.fixedSkinIndex=idx; } // Сохраняем и объект и индекс
+                    else { cfg.fixedSkin=null; cfg.fixedSkinIndex=null; }
+                } else { cfg.fixedSkin=null; cfg.fixedSkinIndex=null; }
             }
 
             let totalChance = 0; let hasInvalidChance = false;
-            const rarities = { 'Mil-Spec': 0, 'Restricted': 0, 'Classified': 0, 'Covert': 0, 'Rare Special Items': 0 };
+            const rarities = {'Mil-Spec':0, 'Restricted':0, 'Classified':0, 'Covert':0, 'Rare Special Items':0};
             for (const key in rarities) {
-                const el = document.getElementById('chance' + key.replace(/\W/g, ''));
+                const el = document.getElementById('chance'+key.replace(/\W/g,''));
                 let val = 0;
-                if (el && el.value !== "" && !isNaN(parseFloat(el.value))) {
+                if (el && el.value!=="" && !isNaN(parseFloat(el.value))) {
                     val = parseFloat(el.value);
-                    if (val < 0) { val = 0; el.value = "0"; hasInvalidChance = true; }
-                } else { if (el) el.value = "0"; hasInvalidChance = true; }
+                    if (val<0) { val=0; el.value=0; hasInvalidChance=true; }
+                } else { if(el) el.value=0; hasInvalidChance=true; }
                 cfg.rarityChances[key] = val; totalChance += val;
             }
             if (cfg.dropMode === 'random' && Math.abs(totalChance - 100) > 0.001) {
-                console.warn(`Total rarity chance is ${totalChance.toFixed(3)}%, not 100%.`); hasInvalidChance = true;
+                console.warn(`Total rarity chance is ${totalChance.toFixed(3)}%, not 100%.`); hasInvalidChance=true;
             }
             cfg.isValid = !hasInvalidChance; return cfg;
         }
-        function showMessage(text, type = 'info', duration = 4000) {
+        function showMessage(text, type = 'info', duration = 4000) { /* ... существующий код ... */ 
             const msgEl = document.getElementById('globalStatusMessage');
-            if (!msgEl) return;
+            if(!msgEl) return;
             msgEl.textContent = text; msgEl.className = `global-status-message ${type}`;
-            void msgEl.offsetWidth; // Trigger reflow
+            void msgEl.offsetWidth;
             msgEl.classList.add('visible');
             if (msgEl.timeoutId) clearTimeout(msgEl.timeoutId);
             msgEl.timeoutId = setTimeout(() => {
                 msgEl.classList.remove('visible');
-                setTimeout(() => { if (!msgEl.classList.contains('visible')) { msgEl.className = 'global-status-message'; } }, 300); // Reset class after fade out
-                delete msgEl.timeoutId;
+                 setTimeout(() => { if (!msgEl.classList.contains('visible')) {msgEl.className='global-status-message';}},300);
+                 delete msgEl.timeoutId;
             }, duration);
         }
-        function saveSettings() {
-            const cfg = buildConfig();
+        function saveSettings(){ /* ... существующий код ... */ 
+             const cfg = buildConfig();
             if (!cfg.isValid) { showMessage(getTranslation('error.invalidRarity'), 'error'); return; }
-            if (cfg.dropMode === 'preset' && !cfg.fixedSkin && cfg.skins.length > 0) { showMessage(getTranslation('error.presetNoSkin'), 'error'); return; }
-            if (cfg.skins.some(s => !s.name)) { showMessage(getTranslation('error.skinNameRequired'), 'error'); return; }
+            if (cfg.dropMode==='preset' && !cfg.fixedSkin && cfg.skins.length>0) { showMessage(getTranslation('error.presetNoSkin'),'error'); return;}
+            if (cfg.skins.some(s=>!s.name)) { showMessage(getTranslation('error.skinNameRequired'),'error'); return; }
 
             const btn = document.getElementById('saveAllSettingsBtn');
-            if (!btn) return;
-            const btnIcon = btn.querySelector('i');
+            const btnIconOnly = btn.querySelector('i').outerHTML;
             const btnTextSpan = btn.querySelector('span');
-            const originalIconHTML = btnIcon ? btnIcon.outerHTML : '<i class="fas fa-save"></i>'; // Default if icon not found
-            const originalText = btnTextSpan ? btnTextSpan.textContent : getTranslation('btn.saveAllSettings');
-
+            const originalText = btnTextSpan ? btnTextSpan.textContent : '';
 
             btn.disabled = true; btn.classList.add('saving');
             btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> <span>${getTranslation('btn.saving')}</span>`;
 
-            fetch('/save-settings', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(cfg) })
-                .then(r => { if (!r.ok) return r.text().then(t => { throw new Error(`Save failed: ${r.status} ${t}`); }); return r.json(); })
-                .then(d => {
-                    showMessage(d.message || getTranslation('success.settingsSaved'), 'success');
-                    btn.classList.remove('saving'); btn.classList.add('saved');
-                    btn.innerHTML = `<i class="fas fa-check"></i> <span>${getTranslation('btn.saved')}</span>`;
-                    setTimeout(() => { btn.classList.remove('saved'); btn.innerHTML = `${originalIconHTML} <span>${originalText}</span>`; btn.disabled = false; }, 2000);
-                })
-                .catch(e => {
-                    console.error('Error saving:', e); showMessage(getTranslation('error.savingFailed') + `: ${e.message}`, 'error');
-                    btn.classList.remove('saving'); btn.classList.add('error');
-                    btn.innerHTML = `<i class="fas fa-times"></i> <span>${getTranslation('btn.saveError')}</span>`;
-                    setTimeout(() => { btn.classList.remove('error'); btn.innerHTML = `${originalIconHTML} <span>${originalText}</span>`; btn.disabled = false; }, 3000);
-                });
+            fetch('/save-settings', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(cfg) })
+            .then(r => { if (!r.ok) return r.text().then(t => {throw new Error(`Save failed: ${r.status} ${t}`);}); return r.json(); })
+            .then(d => {
+                showMessage(d.message || getTranslation('success.settingsSaved'), 'success');
+                btn.classList.remove('saving'); btn.classList.add('saved');
+                btn.innerHTML = `<i class="fas fa-check"></i> <span>${getTranslation('btn.saved')}</span>`;
+                setTimeout(() => { btn.classList.remove('saved'); btn.innerHTML = `${btnIconOnly} <span>${originalText}</span>`; btn.disabled = false; }, 2000);
+            })
+            .catch(e => {
+                console.error('Error saving:', e); showMessage(getTranslation('error.savingFailed')+`: ${e.message}`, 'error');
+                btn.classList.remove('saving'); btn.classList.add('error');
+                btn.innerHTML = `<i class="fas fa-times"></i> <span>${getTranslation('btn.saveError')}</span>`;
+                setTimeout(() => { btn.classList.remove('error'); btn.innerHTML = `${btnIconOnly} <span>${originalText}</span>`; btn.disabled = false; }, 3000);
+            });
         }
 
+        // +++ Функции для истории победителей +++
         function initWinnerHistoryFeature() {
             winnerHistoryModalEl = document.getElementById('winnerHistoryModal');
             btnShowWinnerHistoryEl = document.getElementById('btn-show-winner-history');
@@ -1003,17 +936,18 @@
             if (btnShowWinnerHistoryEl) {
                 btnShowWinnerHistoryEl.addEventListener('click', () => {
                     fetchAndDisplayWinnerHistory();
-                    if (winnerHistoryModalEl) winnerHistoryModalEl.classList.add('visible');
-                    if (winnerHistoryModalEl) {
+                    if(winnerHistoryModalEl) winnerHistoryModalEl.classList.add('visible');
+                    // Обновляем переводы статических элементов модалки при открытии
+                    if(winnerHistoryModalEl) {
                         winnerHistoryModalEl.querySelectorAll('[data-i18n]').forEach(el => {
-                            const key = el.dataset.i18n;
-                            const translation = getTranslation(key);
-                            const targetTextElement = el.querySelector('span') || el;
-                            if (targetTextElement.firstChild && targetTextElement.firstChild.nodeType === Node.TEXT_NODE) {
-                                targetTextElement.firstChild.textContent = translation;
-                            } else if (!el.querySelector('i')) {
-                                targetTextElement.textContent = translation;
-                            }
+                             const key = el.dataset.i18n;
+                             const translation = getTranslation(key);
+                             const targetTextElement = el.querySelector('span') || el; // Если это кнопка со span или просто h2/p
+                             if(targetTextElement.firstChild && targetTextElement.firstChild.nodeType === Node.TEXT_NODE) {
+                                 targetTextElement.firstChild.textContent = translation;
+                             } else if (!el.querySelector('i')) { // Не трогаем иконки
+                                 targetTextElement.textContent = translation;
+                             }
                         });
                     }
                 });
@@ -1021,7 +955,7 @@
 
             if (closeWinnerHistoryModalEl) {
                 closeWinnerHistoryModalEl.addEventListener('click', () => {
-                    if (winnerHistoryModalEl) winnerHistoryModalEl.classList.remove('visible');
+                    if(winnerHistoryModalEl) winnerHistoryModalEl.classList.remove('visible');
                 });
             }
 
@@ -1062,6 +996,7 @@
             const listHtml = history.map(entry => {
                 const skinLabel = getTranslation('winnerHistory.label.skinInfo');
                 const dateLabel = getTranslation('winnerHistory.label.date');
+                // const winnerLabel = getTranslation('winnerHistory.label.winner'); // Не используется в текущем шаблоне, но есть
 
                 let skinDisplayName = entry.skinName;
                 if (entry.skinWeaponType && entry.skinWeaponType !== "Награда" && entry.skinWeaponType !== "Unknown") {
@@ -1069,11 +1004,12 @@
                 }
 
                 const date = new Date(entry.timestamp);
-                let langForDate = currentLang.split('-')[0];
-                if (!['ru', 'en', 'uk'].includes(langForDate)) langForDate = 'default';
+                // Определение локали для форматирования даты
+                let langForDate = currentLang.split('-')[0]; // ru, en, uk
+                if (!['ru', 'en', 'uk'].includes(langForDate)) langForDate = 'default'; // Фоллбэк
 
-                const formattedDate = `${date.toLocaleDateString(langForDate, { day: '2-digit', month: '2-digit', year: 'numeric' })} ${date.toLocaleTimeString(langForDate, { hour: '2-digit', minute: '2-digit' })}`;
-
+                const formattedDate = `${date.toLocaleDateString(langForDate, {day: '2-digit', month: '2-digit', year: 'numeric'})} ${date.toLocaleTimeString(langForDate, { hour: '2-digit', minute: '2-digit' })}`;
+                
                 const rarityClass = entry.skinRarity ? entry.skinRarity.replace(/\s+/g, '-') : 'Unknown';
                 const rarityText = entry.skinRarity && entry.skinRarity !== "Unknown" && entry.skinRarity !== "Награда"
                     ? `<span class="skin-rarity ${rarityClass}">${entry.skinRarity}</span>`
@@ -1100,117 +1036,93 @@
             winnerHistoryContentEl.innerHTML = `<ul class="winner-history-list">${listHtml}</ul>`;
         }
 
-        // Ваша основная функция инициализации
-        function init() {
+
+        function init(){
             fetchCount();
             connectWebSocket();
-            initWinnerHistoryFeature();
+            initWinnerHistoryFeature(); // <--- Инициализация истории победителей
 
             fetch('/get-giveaway-status')
-                .then(r => r.ok ? r.json() : Promise.reject(`HTTP error ${r.status}: ${r.statusText}`))
-                .then(data => {
-                    if (data && typeof data.active !== 'undefined' && data.statusKey) {
-                        lastKnownGiveawayServerState = { active: data.active, statusKey: data.statusKey };
-                        updateGiveawayStatusDisplay(data.active, data.statusKey);
-                    } else {
-                        console.warn('Initial giveaway status data is incomplete:', data);
-                        updateGiveawayStatusDisplay(false, 'status.idle');
-                    }
-                })
-                .catch(e => {
-                    console.error('Error fetching initial giveaway status:', e);
-                    updateGiveawayStatusDisplay(false, 'status.idle');
-                });
+            .then(r => r.ok ? r.json() : Promise.reject(`HTTP error ${r.status}: ${r.statusText}`))
+            .then(data => {
+                if (data && typeof data.active !== 'undefined' && data.statusKey) {
+                    lastKnownGiveawayServerState = { active: data.active, statusKey: data.statusKey };
+                    updateGiveawayStatusDisplay(data.active, data.statusKey);
+                } else {
+                     console.warn('Initial giveaway status data is incomplete:', data);
+                     updateGiveawayStatusDisplay(false, 'status.idle');
+                }
+            })
+            .catch(e => {
+                console.error('Error fetching initial giveaway status:', e);
+                updateGiveawayStatusDisplay(false, 'status.idle');
+            });
 
-            document.getElementById('btn-start')?.addEventListener('click', () => fetch('/start-collection', { method: 'POST' }));
-            document.getElementById('btn-open')?.addEventListener('click', () => fetch('/open-overlay', { method: 'POST' }));
-            document.getElementById('btn-roll')?.addEventListener('click', () => fetch('/roll', { method: 'POST' }));
-            document.getElementById('addSkinBtn')?.addEventListener('click', () => { addSkinRow(); updateFixedSkinOptions(); });
 
-            const dmSel = document.getElementById('dropMode');
-            const psDiv = document.getElementById('presetSkinSelect');
-            const fsSel = document.getElementById('fixedSkin');
+            document.getElementById('btn-start')?.addEventListener('click', ()=>fetch('/start-collection',{method:'POST'}));
+            document.getElementById('btn-open')?.addEventListener('click', ()=>fetch('/open-overlay',{method:'POST'}));
+            document.getElementById('btn-roll')?.addEventListener('click', ()=>fetch('/roll',{method:'POST'}));
+            document.getElementById('addSkinBtn')?.addEventListener('click', ()=> { addSkinRow(); updateFixedSkinOptions(); });
 
-            if (dmSel && psDiv) {
-                 dmSel.addEventListener('change', e => {
-                    psDiv.style.display = e.target.value === 'preset' ? 'block' : 'none';
-                    updateSidebarDropStatus();
-                 });
-            }
-            if (fsSel) {
-                fsSel.addEventListener('change', updateSidebarDropStatus);
-            }
-            const settingsFormEl = document.getElementById('settingsForm');
-            if (settingsFormEl) {
-                settingsFormEl.addEventListener('submit', e => { e.preventDefault(); saveSettings(); });
-            }
-
+            const dmSel = document.getElementById('dropMode'), psDiv = document.getElementById('presetSkinSelect'), fsSel = document.getElementById('fixedSkin');
+            if(dmSel&&psDiv) dmSel.addEventListener('change', e=>{ psDiv.style.display=e.target.value==='preset'?'block':'none'; updateSidebarDropStatus(); });
+            if(fsSel) fsSel.addEventListener('change', updateSidebarDropStatus);
+            document.getElementById('settingsForm').addEventListener('submit', e=>{ e.preventDefault(); saveSettings(); });
 
             fetch('/get-settings')
-                .then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); })
-                .then(cfg => {
-                    if (!cfg || Object.keys(cfg).length === 0) {
-                        showMessage(getTranslation('warning.emptySettings'), 'error'); cfg = {}; // Provide default empty config
+            .then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); })
+            .then(cfg => {
+                if (!cfg || Object.keys(cfg).length === 0) {
+                    showMessage(getTranslation('warning.emptySettings'), 'error'); cfg = {};
+                }
+                document.getElementById('chatDelay').value = cfg.chatDelay ?? 130;
+                document.querySelector('#skinsTable tbody').innerHTML = '';
+                (cfg.skins||[]).forEach(s => addSkinRow(s));
+                updateFixedSkinOptions();
+
+                const cdm = cfg.dropMode || 'random';
+                if(dmSel) dmSel.value = cdm;
+                if(psDiv) psDiv.style.display = cdm === 'preset' ? 'block' : 'none';
+                
+                // Устанавливаем выбранный скин в #fixedSkin, если это preset режим
+                // cfg.fixedSkin теперь должен быть объектом, а не индексом, после сохранения настроек
+                if (cdm === 'preset' && cfg.skins && cfg.skins.length > 0 && fsSel) {
+                    let skinIndexToSelect = -1;
+                    if (cfg.fixedSkin && typeof cfg.fixedSkin.name === 'string') { // Если fixedSkin - это объект скина
+                        skinIndexToSelect = (cfg.skins || []).findIndex(s => 
+                            s.name === cfg.fixedSkin.name && 
+                            s.weapontype === cfg.fixedSkin.weapontype &&
+                            s.rarity === cfg.fixedSkin.rarity
+                        );
+                    } else if (typeof cfg.fixedSkinIndex === 'number' && cfg.fixedSkinIndex >= 0 && cfg.fixedSkinIndex < cfg.skins.length) {
+                        // Фоллбэк, если fixedSkin не объект, а есть fixedSkinIndex
+                         skinIndexToSelect = cfg.fixedSkinIndex;
                     }
-                    const chatDelayEl = document.getElementById('chatDelay');
-                    if (chatDelayEl) chatDelayEl.value = cfg.chatDelay ?? 130;
+                    fsSel.value = skinIndexToSelect !== -1 ? skinIndexToSelect.toString() : "";
 
-                    const skinsTableBody = document.querySelector('#skinsTable tbody');
-                    if(skinsTableBody) skinsTableBody.innerHTML = '';
+                } else if (fsSel) {
+                     fsSel.value = ""; // Сбрасываем, если не preset или нет скинов
+                }
 
-                    (cfg.skins || []).forEach(s => addSkinRow(s));
-                    updateFixedSkinOptions();
 
-                    const cdm = cfg.dropMode || 'random';
-                    if (dmSel) dmSel.value = cdm;
-                    if (psDiv) psDiv.style.display = cdm === 'preset' ? 'block' : 'none';
+                const defChances = {'Mil-Spec':79.923,'Restricted':15.984,'Classified':3.197,'Covert':0.639,'Rare Special Items':0.256};
+                const lChances = cfg.rarityChances || {};
+                for(const k in defChances){ const el=document.getElementById('chance'+k.replace(/\W/g,'')); if(el) el.value = (typeof lChances[k]==='number')?lChances[k]:defChances[k];}
 
-                    if (cdm === 'preset' && cfg.skins && cfg.skins.length > 0 && fsSel) {
-                        let skinIndexToSelect = -1;
-                        if (cfg.fixedSkin && typeof cfg.fixedSkin.name === 'string') {
-                            skinIndexToSelect = (cfg.skins || []).findIndex(s =>
-                                s.name === cfg.fixedSkin.name &&
-                                s.weapontype === cfg.fixedSkin.weapontype &&
-                                s.rarity === cfg.fixedSkin.rarity
-                            );
-                        } else if (typeof cfg.fixedSkinIndex === 'number' && cfg.fixedSkinIndex >= 0 && cfg.fixedSkinIndex < cfg.skins.length) {
-                            skinIndexToSelect = cfg.fixedSkinIndex;
-                        }
-                        fsSel.value = skinIndexToSelect !== -1 ? skinIndexToSelect.toString() : "";
-                    } else if (fsSel) {
-                        fsSel.value = "";
-                    }
-
-                    const defChances = { 'Mil-Spec': 79.923, 'Restricted': 15.984, 'Classified': 3.197, 'Covert': 0.639, 'Rare Special Items': 0.256 };
-                    const lChances = cfg.rarityChances || {};
-                    for (const k in defChances) {
-                        const el = document.getElementById('chance' + k.replace(/\W/g, ''));
-                        if (el) el.value = (typeof lChances[k] === 'number') ? lChances[k].toString() : defChances[k].toString();
-                    }
-                })
-                .catch(e => {
-                    console.error('Error loading settings:', e);
-                    showMessage(getTranslation('error.loadingSettings') + `: ${e.message}. Defaults used.`, 'error');
-                    const defChances = { 'Mil-Spec': 79.923, 'Restricted': 15.984, 'Classified': 3.197, 'Covert': 0.639, 'Rare Special Items': 0.256 };
-                    for (const k in defChances) {
-                        const el = document.getElementById('chance' + k.replace(/\W/g, ''));
-                        if (el) el.value = defChances[k].toString();
-                    }
-                })
-                .finally(() => {
-                    setLanguage(currentLang);
-                    updateSidebarDropStatus();
-                });
+            })
+            .catch(e => {
+                console.error('Error loading settings:', e);
+                showMessage(getTranslation('error.loadingSettings') + `: ${e.message}. Defaults used.`, 'error');
+                const defChances={'Mil-Spec':79.923,'Restricted':15.984,'Classified':3.197,'Covert':0.639,'Rare Special Items':0.256};
+                for(const k in defChances){ const el=document.getElementById('chance'+k.replace(/\W/g,'')); if(el) el.value = defChances[k];}
+            })
+            .finally(() => {
+                setLanguage(currentLang); // Применяем язык
+                updateSidebarDropStatus(); // Обновляем отображение режима дропа в сайдбаре
+            });
         }
-        // Вызываем вашу основную функцию инициализации здесь, внутри initializeAppLogic
-        init();
-
-    } // --- КОНЕЦ ФУНКЦИИ initializeAppLogic ---
-
-    // Запускаем проверку аутентификации при загрузке DOM
-    document.addEventListener('DOMContentLoaded', checkAuthentication);
-
-})();
-</script>
+        document.addEventListener('DOMContentLoaded', init);
+    })();
+    </script>
 </body>
 </html>
