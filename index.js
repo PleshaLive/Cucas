@@ -15,10 +15,19 @@ import { WebSocketServer } from 'ws';
 const ROOT = process.cwd();
 const CONFIG_PATH = path.join(ROOT, 'config.json');
 const PARTS_PATH = path.join(ROOT, 'participants.json');
+// +++ Путь к файлу истории победителей +++
+const WINNER_HISTORY_PATH = path.join(ROOT, 'winner_history.json');
+
 if (!fs.existsSync(PARTS_PATH)) fs.writeFileSync(PARTS_PATH, '[]', 'utf-8');
 let participants = JSON.parse(fs.readFileSync(PARTS_PATH, 'utf-8'));
 
-let autoRestartTimer = null;
+// +++ Инициализация и загрузка истории победителей +++
+if (!fs.existsSync(WINNER_HISTORY_PATH)) {
+  fs.writeFileSync(WINNER_HISTORY_PATH, '[]', 'utf-8');
+}
+let winnerHistory = JSON.parse(fs.readFileSync(WINNER_HISTORY_PATH, 'utf-8'));
+
+let autoRestartTimer = null; // Используем это имя переменной, как в вашем коде
 
 // ——————————————————————————————————————————————————————————
 // 1) Загружаем .env и config.json
@@ -55,10 +64,87 @@ if (!fs.existsSync(CONFIG_PATH)) {
   process.exit(1);
 }
 const config = JSON.parse(fs.readFileSync(CONFIG_PATH, 'utf-8'));
+// Убедимся, что skins, dropMode, fixedSkin, rarityChances, chatDelay извлекаются корректно
+// и `fixedSkin` является объектом скина, если он задан, а не просто индексом.
+// Это важно для логики истории. Если fixedSkin в config.json это индекс, то нужно будет его разрешить в объект скина.
+// Предположим, что `fixedSkin` в `config` уже является объектом скина, если `dropMode === 'preset'`.
 let { skins, dropMode, fixedSkin, rarityChances, chatDelay } = config;
+
 
 config.chatDelay = config.chatDelay ?? (CHAT_DELAY ? parseInt(CHAT_DELAY, 10) : 5);
 chatDelay = config.chatDelay;
+
+// ——————————————————————————————————————————————————————————
+// +++ ФУНКЦИЯ ДЛЯ ОПРЕДЕЛЕНИЯ СЛУЧАЙНОГО СКИНА +++
+function determineRandomlySelectedSkin(availableSkins, chances) {
+    if (!availableSkins || availableSkins.length === 0) {
+        console.warn("[determineRandomSkin] Нет доступных скинов для выбора.");
+        return null;
+    }
+    if (!chances || Object.keys(chances).length === 0) {
+        console.warn("[determineRandomSkin] Шансы редкости не определены. Выбирается случайный скин из всех.");
+        return availableSkins[Math.floor(Math.random() * availableSkins.length)];
+    }
+
+    const rarityOrder = ["Mil-Spec", "Restricted", "Classified", "Covert", "Rare Special Items"];
+    let cumulativeChance = 0;
+    const chanceDistribution = [];
+
+    for (const rarity of rarityOrder) {
+        const chance = parseFloat(chances[rarity] || 0);
+        if (chance > 0) { // Учитываем только редкости с шансом > 0
+            cumulativeChance += chance;
+            chanceDistribution.push({ rarity, cumulative: cumulativeChance });
+        }
+    }
+
+    if (cumulativeChance === 0) {
+        console.warn("[determineRandomSkin] Сумма всех учитываемых шансов редкости равна нулю. Выбирается случайный скин из всех.");
+        return availableSkins[Math.floor(Math.random() * availableSkins.length)];
+    }
+
+    const randomPick = Math.random() * cumulativeChance;
+    let chosenRarity = null;
+
+    for (const segment of chanceDistribution) {
+        if (randomPick < segment.cumulative) {
+            chosenRarity = segment.rarity;
+            break;
+        }
+    }
+    
+    if (!chosenRarity && chanceDistribution.length > 0) { // Фоллбэк, если randomPick был равен cumulativeChance
+        chosenRarity = chanceDistribution[chanceDistribution.length - 1].rarity;
+    } else if (!chosenRarity && availableSkins.length > 0) {
+         console.error("[determineRandomSkin] Не удалось определить редкость по шансам. Выбирается случайный скин из доступных.");
+         return availableSkins[Math.floor(Math.random() * availableSkins.length)];
+    } else if (!chosenRarity) {
+        console.error("[determineRandomSkin] Не удалось определить редкость и нет доступных скинов для фоллбэка по шансам.");
+        return null;
+    }
+
+
+    const skinsOfChosenRarity = availableSkins.filter(skin => skin.rarity === chosenRarity);
+
+    if (skinsOfChosenRarity.length > 0) {
+        return skinsOfChosenRarity[Math.floor(Math.random() * skinsOfChosenRarity.length)];
+    } else {
+        console.warn(`[determineRandomSkin] Нет скинов для выбранной по шансам редкости "${chosenRarity}". Попытка найти скин другой существующей редкости.`);
+        for (const rarityKey of rarityOrder) { // Ищем в порядке редкости
+            const fallbackSkins = availableSkins.filter(s => s.rarity === rarityKey && s !== chosenRarity); // Исключаем уже проверенную редкость, если она была пуста
+            if (fallbackSkins.length > 0) {
+                console.warn(`[determineRandomSkin] Фоллбэк на редкость "${rarityKey}".`);
+                return fallbackSkins[Math.floor(Math.random() * fallbackSkins.length)];
+            }
+        }
+        if (availableSkins.length > 0) { // Если совсем ничего не нашлось по редкостям, но скины есть
+             console.warn(`[determineRandomSkin] Не удалось найти скин по редкостям, выбирается случайный из всех доступных.`);
+            return availableSkins[Math.floor(Math.random() * availableSkins.length)];
+        }
+        return null;
+    }
+}
+
 
 // ——————————————————————————————————————————————————————————
 // 2) Express + JSON + статика
@@ -73,7 +159,17 @@ app.get('/get-settings', (_req, res) => res.json(config));
 
 app.post('/save-settings', (req, res) => {
   Object.assign(config, req.body);
+  // Обновляем локальные переменные из config после сохранения
   ({ skins, dropMode, fixedSkin, rarityChances, chatDelay } = config);
+  // Важно: если fixedSkin в req.body это индекс (fixedSkinIndex),
+  // то нужно преобразовать его в объект скина для переменной fixedSkin
+  if (config.dropMode === 'preset' && typeof config.fixedSkinIndex === 'number' && config.skins && config.fixedSkinIndex < config.skins.length) {
+      fixedSkin = config.skins[config.fixedSkinIndex];
+  } else if (config.dropMode !== 'preset') {
+      fixedSkin = null; // Сбрасываем, если не пресет
+  }
+
+
   fs.writeFileSync(CONFIG_PATH, JSON.stringify(config, null, 2), 'utf-8');
   broadcast({ type: 'settings-updated' });
   console.log('[CONFIG] config.json saved');
@@ -82,6 +178,11 @@ app.post('/save-settings', (req, res) => {
 
 app.get('/participants-count', (_req, res) => res.json({ count: participants.length }));
 app.get('/participants.json', (_req, res) => res.json(participants));
+
+// +++ API для получения истории победителей +++
+app.get('/get-winner-history', (_req, res) => {
+    res.json(winnerHistory);
+});
 
 const IMG_DIR = path.join(ROOT, 'public', 'img');
 fs.mkdirSync(IMG_DIR, { recursive: true });
@@ -105,7 +206,7 @@ app.get('/get-giveaway-status', (_req, res) => {
     let currentStatusKey = 'status.idle';
     if (collecting) {
         currentStatusKey = 'status.active';
-    } else if (autoRestartTimer) {
+    } else if (autoRestartTimer) { // Используем autoRestartTimer как в вашем коде
         currentStatusKey = 'status.pendingRestart';
     }
     res.json({ active: collecting, statusKey: currentStatusKey });
@@ -116,7 +217,7 @@ app.get('/get-giveaway-status', (_req, res) => {
 let collecting = false;
 let isOpen = false;
 
-function startNewCollectionLogic(isAutoRestart = false) {
+function startNewCollectionLogic(isAutoRestart = false) { // Переименовано для ясности
     if (autoRestartTimer) {
         clearTimeout(autoRestartTimer);
         autoRestartTimer = null;
@@ -130,7 +231,7 @@ function startNewCollectionLogic(isAutoRestart = false) {
     broadcast({ type: 'giveawayStatusUpdate', active: collecting, statusKey: 'status.active' });
 
     const startMessage = isAutoRestart
-        ? `🎉 Новый розыгрыш запущен автоматически! Покупайте "${REWARD_TITLE}" за очки канала!`
+        ? `🎉 Новый розыгрыш "${REWARD_TITLE}" запущен автоматически! Покупайте награду за очки канала!`
         : `🎉 Розыгрыш "${REWARD_TITLE}" запущен! Покупайте награду за очки канала!`;
     chat.say(CHANNEL_NAME, startMessage);
 
@@ -165,24 +266,64 @@ app.post('/roll', (_req, res) => {
 
     const winner = participants[Math.floor(Math.random() * participants.length)];
 
+    // +++ ОПРЕДЕЛЕНИЕ ВЫИГРАННОГО СКИНА НА СЕРВЕРЕ +++
+    let actualWonSkin = null;
+    if (dropMode === 'preset' && fixedSkin) { // fixedSkin должен быть объектом скина
+        // Убедимся, что fixedSkin (из глобальной переменной, обновляемой из config) это корректный объект
+         actualWonSkin = fixedSkin; // Предполагаем, что fixedSkin уже правильный объект скина
+    } else if (dropMode === 'random' && skins && skins.length > 0) {
+        actualWonSkin = determineRandomlySelectedSkin(skins, rarityChances);
+    }
+
+    // Заглушка, если скин не определен, чтобы история записалась
+    if (!actualWonSkin) {
+        console.log("[ROLL] Не удалось определить конкретный скин. Будет использовано название награды.");
+        actualWonSkin = {
+            name: REWARD_TITLE,
+            weapontype: "Награда", // Тип по умолчанию
+            image: null,
+            rarity: "Unknown"
+        };
+    }
+    // +++ КОНЕЦ ОПРЕДЕЛЕНИЯ СКИНА +++
+
     setTimeout(() => {
-        chat.say(CHANNEL_NAME, `🎉 Поздравляем @${winner}, вы выиграли ${REWARD_TITLE}!`);
+        chat.say(CHANNEL_NAME, `🎉 Поздравляем @${winner}, вы выиграли ${actualWonSkin.name || REWARD_TITLE}!`);
     }, chatDelay * 1000);
 
     broadcast({
         type: 'roll',
         winner,
         participants,
-        dropMode,
-        fixedSkin,
-        rarityChances,
-        skins
+        dropMode: dropMode,
+        selectedSkinToDisplay: actualWonSkin, // Передаем КОНКРЕТНЫЙ скин в оверлей
+        // Остальные параметры для возможной совместимости с оверлеем
+        fixedSkin: (dropMode === 'preset' ? actualWonSkin : null),
+        rarityChances: rarityChances,
+        skins: skins
     });
+    
+    // +++ СОХРАНЕНИЕ В ИСТОРИЮ ПОБЕДИТЕЛЕЙ +++
+    const historyEntry = {
+        winnerName: winner,
+        skinName: actualWonSkin.name,
+        skinWeaponType: actualWonSkin.weapontype,
+        skinImage: actualWonSkin.image,
+        skinRarity: actualWonSkin.rarity,
+        timestamp: new Date().toISOString()
+    };
+    winnerHistory.unshift(historyEntry); // Добавляем в начало массива
+    if (winnerHistory.length > 100) { // Ограничиваем размер истории
+        winnerHistory.pop();
+    }
+    fs.writeFileSync(WINNER_HISTORY_PATH, JSON.stringify(winnerHistory, null, 2), 'utf-8');
+    console.log(`[HISTORY] Победитель ${winner} выиграл "${actualWonSkin.name}". История сохранена.`);
+    // +++ КОНЕЦ СОХРАНЕНИЯ В ИСТОРИЮ +++
 
     broadcast({ type: 'giveawayStatusUpdate', active: collecting, statusKey: 'status.pendingRestart' });
-    console.log('[ADMIN] roll, winner=', winner);
+    console.log('[ADMIN] roll, winner=', winner, 'won skin:', actualWonSkin.name);
 
-    if (autoRestartTimer) {
+    if (autoRestartTimer) { // Используем autoRestartTimer
         clearTimeout(autoRestartTimer);
     }
     autoRestartTimer = setTimeout(() => {
@@ -191,7 +332,7 @@ app.post('/roll', (_req, res) => {
         startNewCollectionLogic(true);
     }, 120000);
 
-    res.json({ success: true, winner });
+    res.json({ success: true, winner, wonSkin: actualWonSkin }); // Возвращаем информацию о выигранном скине
 });
 
 // ——————————————————————————————————————————————————————————
@@ -261,8 +402,8 @@ chat.on('message', (_ch, tags, msg, self) => {
         accessToken: TWITCH_OAUTH_TOKEN,
         refreshToken: TWITCH_REFRESH_TOKEN,
         expiresIn: 0,
-        obtainmentTimestamp: Date.now() - 1000*60*5, // 5 минут назад, чтобы Twurple мог обновить токен
-    }, ['channel:read:redemptions']); // Убраны scopes chat, если они не нужны для EventSub
+        obtainmentTimestamp: Date.now() - 1000*60*5,
+    }, ['channel:read:redemptions']);
   } catch (e) {
     console.error('[EventSub] Failed to add user for token:', e);
     process.exit(1);
@@ -271,16 +412,13 @@ chat.on('message', (_ch, tags, msg, self) => {
   const listener = new EventSubWsListener({ apiClient: api });
   
   try {
-    await listener.start(); // Верификация соединения происходит здесь
+    await listener.start();
     console.log('[EventSub] Listener started and connected.');
 
-    // Обработчик отзыва подписки (ЭТОТ МЕТОД СУЩЕСТВУЕТ)
     listener.onRevoke((subscription) => {
         console.error(`[EventSub] Subscription revoked by Twitch for type: ${subscription.type}. ID: ${subscription.id}`);
-        // Здесь можно добавить логику для попытки переподписаться, если это необходимо
     });
 
-    // Подписка на выкуп награды
     try {
         const redemptionSubscription = await listener.onChannelRedemptionAddForReward(
             user.id,
@@ -305,10 +443,8 @@ chat.on('message', (_ch, tags, msg, self) => {
         console.log(`[EventSub] Subscribed to redemptions for reward "${REWARD_TITLE}" (ID=${REWARD_ID}) for user ${user.displayName} (ID=${user.id}). Subscription ID: ${redemptionSubscription.id}`);
     } catch (subError) {
         console.error(`[EventSub] Failed to subscribe to ChannelRedemptionAddForReward for reward ${REWARD_ID}:`, subError);
-        // Можно рассмотреть выход из приложения или повторную попытку, если эта подписка критична
     }
 
-    // Подписка на событие выхода в онлайн
     try {
         const streamOnlineSubscription = await listener.onStreamOnline(user.id, e => {
           console.log(`[EventSub] Stream for ${e.broadcasterDisplayName} is now ONLINE! Event type: ${e.type}`);
@@ -318,12 +454,9 @@ chat.on('message', (_ch, tags, msg, self) => {
         console.error(`[EventSub] Failed to subscribe to StreamOnlineEvents for user ${user.displayName}:`, subError);
     }
     
-    // Удалены listener.onSubscriptionCreateFailure и listener.onVerify, так как их нет в API.
-    // Ошибки создания конкретных подписок обрабатываются через try/catch выше.
-
-  } catch (e) { // Ошибка от listener.start() или другие общие ошибки в блоке try
+  } catch (e) {
       console.error('[EventSub] Failed to start listener or critical error in EventSub setup:', e);
-      if (e.body) { // Попытка разобрать тело ошибки от Twitch API, если есть
+      if (e.body) {
         try {
           const errorBody = JSON.parse(e.body);
           console.error('[EventSub] Twitch API error details in body:', JSON.stringify(errorBody, null, 2));
@@ -331,10 +464,9 @@ chat.on('message', (_ch, tags, msg, self) => {
           console.error('[EventSub] Twitch API error body (not JSON):', e.body);
         }
       }
-      // process.exit(1); // Рассмотрите необходимость выхода из приложения при такой ошибке
   }
 
-})().catch(e => { // Отлов ошибок из самовызывающейся асинхронной функции
+})().catch(e => {
     console.error("FATAL Error in EventSub main async execution block:", e);
-    process.exit(1); // Критическая ошибка, лучше завершить приложение
+    process.exit(1);
 });

@@ -420,3 +420,179 @@ body {
     z-index: 2;
     text-align: center;
 }
+
+/* --- Winner History Modal --- */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(var(--rgb-primary), 0.3); /* Полупрозрачный фон с основным цветом */
+    backdrop-filter: blur(5px); /* Эффект размытия */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1050; /* Выше других элементов */
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1), visibility 0s linear 0.3s;
+}
+.modal-overlay.visible {
+    opacity: 1;
+    visibility: visible;
+    transition-delay: 0s;
+}
+.modal-content {
+    background-color: var(--color-surface); /* Используем основной фон для контента */
+    padding: var(--spacing-lg);
+    border-radius: var(--border-radius-xl);
+    border: 1px solid var(--color-border);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3), var(--glow-primary); /* Улучшенная тень */
+    width: 90%;
+    max-width: 650px; /* Немного шире */
+    max-height: 85vh;
+    display: flex;
+    flex-direction: column;
+    transform: translateY(-20px) scale(0.95); /* Начальное состояние для анимации появления */
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.modal-overlay.visible .modal-content {
+    transform: translateY(0) scale(1);
+}
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: var(--spacing-md);
+    border-bottom: 1px solid var(--color-divider);
+    margin-bottom: var(--spacing-md);
+}
+.modal-header h2 {
+    margin-bottom: 0;
+    font-size: 1.4rem; /* Крупнее заголовок модалки */
+    color: var(--color-primary-light);
+    text-shadow: var(--text-shadow-primary);
+}
+.modal-close-button {
+    background: transparent;
+    border: none;
+    font-size: 1.8rem;
+    font-weight: var(--font-weight-bold);
+    color: var(--color-text-muted);
+    cursor: pointer;
+    padding: var(--spacing-xs); /* Чтобы легче было нажать */
+    line-height: 1;
+    border-radius: var(--border-radius-round);
+    transition: var(--transition-fast);
+}
+.modal-close-button:hover {
+    color: var(--color-error); /* Красный при наведении */
+    background-color: rgba(var(--rgb-error), 0.1);
+}
+.modal-body {
+    overflow-y: auto; /* styled-scrollbar применится, если есть */
+    flex-grow: 1;
+    padding-right: var(--spacing-sm); /* Немного отступа для скроллбара */
+}
+
+.winner-history-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+.winner-history-item {
+    background-color: var(--color-surface-secondary);
+    border: 1px solid var(--color-border-light);
+    border-radius: var(--border-radius-lg);
+    padding: var(--spacing-md);
+    margin-bottom: var(--spacing-md);
+    display: flex;
+    /* align-items: center; */ /* Выравнивание по верху для лучшего вида с разной высотой текста */
+    align-items: flex-start;
+    gap: var(--spacing-md);
+    transition: var(--transition-base);
+}
+.winner-history-item:hover {
+    border-color: var(--color-primary-base);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+.winner-history-item:last-child {
+    margin-bottom: 0;
+}
+.winner-history-item-image img,
+.winner-history-item-image .no-image-placeholder {
+    width: 70px;  /* Немного больше изображение */
+    height: 70px;
+    object-fit: contain;
+    border-radius: var(--border-radius-md);
+    background-color: var(--color-surface-tertiary);
+    border: 1px solid var(--color-border);
+    flex-shrink: 0; /* Чтобы изображение не сжималось */
+}
+.winner-history-item-image .no-image-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-text-muted);
+    font-size: 2rem; /* Крупнее иконка */
+}
+.winner-history-item-details {
+    flex-grow: 1;
+    min-width: 0; /* Для корректного переноса текста */
+}
+.winner-history-item-details p {
+    margin: 0 0 var(--spacing-sm) 0;
+    font-size: 0.9rem;
+    color: var(--color-text-secondary);
+    line-height: 1.5;
+}
+.winner-history-item-details p:last-child {
+    margin-bottom: 0;
+}
+.winner-history-item-details strong { /* Общий стиль для жирного текста в деталях */
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text-primary);
+}
+.winner-history-item-details .winner-name {
+    font-size: 1.1rem;
+    font-weight: var(--font-weight-bold);
+    color: var(--color-primary-light);
+}
+.winner-history-item-details .skin-info {
+    font-size: 1rem;
+    color: var(--color-text-primary);
+}
+.winner-history-item-details .skin-rarity {
+    padding: 3px 8px;
+    border-radius: var(--border-radius-sm);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: var(--font-weight-bold);
+    margin-left: var(--spacing-sm);
+    display: inline-block;
+    vertical-align: middle;
+    line-height: 1.2; /* Для лучшего вида маленьких букв */
+}
+.skin-rarity.Mil-Spec { background-color: #4B58E3; color: white; }
+.skin-rarity.Restricted { background-color: #AF5DE5; color: white; }
+.skin-rarity.Classified { background-color: #F92177; color: white; }
+.skin-rarity.Covert { background-color: #E92E2E; color: white; }
+.skin-rarity.Rare-Special-Items { background-color: #EFA640; color: white; } /* Убрал точку, чтобы класс был валидным */
+.skin-rarity.Unknown, .skin-rarity.Награда /* Для русскоязычной заглушки */ {
+    background-color: var(--color-text-muted); color: var(--color-surface);
+}
+
+.winner-history-item-date {
+    font-size: 0.8rem;
+    color: var(--color-text-muted);
+    margin-top: var(--spacing-xs);
+}
+#winnerHistoryContent .no-history-message { /* Для сообщения "нет истории" */
+    text-align: center;
+    padding: var(--spacing-xl);
+    font-size: 1rem;
+    color: var(--color-text-muted);
+}

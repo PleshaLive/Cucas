@@ -9,6 +9,182 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
     <link rel="stylesheet" href="settings.css" />
+    <style>
+        /* --- Winner History Modal --- */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(var(--rgb-primary, 40, 30, 70), 0.4); /* Полупрозрачный фон с цветом темы или дефолтом */
+            backdrop-filter: blur(8px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1050;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1), visibility 0s linear 0.3s;
+        }
+        .modal-overlay.visible {
+            opacity: 1;
+            visibility: visible;
+            transition-delay: 0s;
+        }
+        .modal-content {
+            background-color: var(--color-surface, #151127); /* Фон из темы */
+            padding: var(--spacing-lg, 1.5rem);
+            border-radius: var(--border-radius-xl, 16px);
+            border: 1px solid var(--color-border, #3B325C);
+            box-shadow: 0 10px 35px rgba(0,0,0,0.35), var(--glow-primary, 0 0 12px rgba(122,100,185,0.6));
+            width: 90%;
+            max-width: 700px;
+            max-height: 85vh;
+            display: flex;
+            flex-direction: column;
+            transform: translateY(-30px) scale(0.9);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .modal-overlay.visible .modal-content {
+            transform: translateY(0) scale(1);
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: var(--spacing-md, 1rem);
+            border-bottom: 1px solid var(--color-divider, #1D1733);
+            margin-bottom: var(--spacing-md, 1rem);
+        }
+        .modal-header h2 {
+            margin-bottom: 0;
+            font-size: 1.5rem;
+            color: var(--color-primary-light, #9370DB);
+            text-shadow: var(--text-shadow-primary, 0 0 8px rgba(122,100,185,0.7));
+        }
+        .modal-close-button {
+            background: transparent;
+            border: none;
+            font-size: 2rem;
+            font-weight: var(--font-weight-bold, 700);
+            color: var(--color-text-muted, #808A9A);
+            cursor: pointer;
+            padding: var(--spacing-xs, 0.25rem);
+            line-height: 1;
+            border-radius: var(--border-radius-round, 50%);
+            transition: var(--transition-fast, all 0.15s ease-out);
+        }
+        .modal-close-button:hover {
+            color: var(--color-error, #ef4444);
+            background-color: rgba(var(--rgb-error, 239,68,68), 0.1);
+            transform: scale(1.1);
+        }
+        .modal-body {
+            overflow-y: auto;
+            flex-grow: 1;
+            padding-right: var(--spacing-xs, 0.25rem); /* Для скроллбара, если он не стилизован глобально */
+        }
+
+        .winner-history-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .winner-history-item {
+            background-color: var(--color-surface-secondary, #221C3B);
+            border: 1px solid var(--color-border-light, #50467A);
+            border-radius: var(--border-radius-lg, 12px);
+            padding: var(--spacing-md, 1rem);
+            margin-bottom: var(--spacing-md, 1rem);
+            display: flex;
+            align-items: flex-start;
+            gap: var(--spacing-md, 1rem);
+            transition: var(--transition-base, all 0.25s cubic-bezier(0.4, 0, 0.2, 1));
+        }
+        .winner-history-item:hover {
+            border-color: var(--color-primary-base, #7A64B9);
+            transform: translateY(-3px) scale(1.01);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        .winner-history-item:last-child {
+            margin-bottom: 0;
+        }
+        .winner-history-item-image img,
+        .winner-history-item-image .no-image-placeholder {
+            width: 64px;
+            height: 64px;
+            object-fit: contain;
+            border-radius: var(--border-radius-md, 8px);
+            background-color: var(--color-surface-tertiary, #1A162E);
+            border: 1px solid var(--color-border, #3B325C);
+            flex-shrink: 0;
+        }
+        .winner-history-item-image .no-image-placeholder {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--color-text-muted, #808A9A);
+            font-size: 1.8rem;
+        }
+        .winner-history-item-details {
+            flex-grow: 1;
+            min-width: 0;
+        }
+        .winner-history-item-details p {
+            margin: 0 0 var(--spacing-sm, 0.5rem) 0;
+            font-size: 0.9rem;
+            color: var(--color-text-secondary, #B0B8C5);
+            line-height: 1.5;
+        }
+        .winner-history-item-details p:last-child {
+            margin-bottom: 0;
+        }
+        .winner-history-item-details strong {
+            font-weight: var(--font-weight-semibold, 600);
+            color: var(--color-text-primary, #F0F2F5);
+        }
+        .winner-history-item-details .winner-name {
+            font-size: 1.15rem;
+            font-weight: var(--font-weight-bold, 700);
+            color: var(--color-primary-light, #9370DB);
+        }
+        .winner-history-item-details .skin-info {
+            font-size: 1rem;
+            color: var(--color-text-primary, #F0F2F5);
+        }
+        .winner-history-item-details .skin-rarity {
+            padding: 3px 8px;
+            border-radius: var(--border-radius-sm, 6px);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-weight: var(--font-weight-bold, 700);
+            margin-left: var(--spacing-sm, 0.5rem);
+            display: inline-block;
+            vertical-align: middle;
+            line-height: 1.2;
+        }
+        .skin-rarity.Mil-Spec { background-color: #4B58E3; color: white; }
+        .skin-rarity.Restricted { background-color: #AF5DE5; color: white; }
+        .skin-rarity.Classified { background-color: #F92177; color: white; }
+        .skin-rarity.Covert { background-color: #E92E2E; color: white; }
+        .skin-rarity.Rare-Special-Items { background-color: #EFA640; color: white; }
+        .skin-rarity.Unknown, .skin-rarity.Награда {
+            background-color: var(--color-text-muted, #808A9A); color: var(--color-surface, #151127);
+        }
+        .winner-history-item-date {
+            font-size: 0.8rem;
+            color: var(--color-text-muted, #808A9A);
+            margin-top: var(--spacing-xs, 0.25rem);
+        }
+        #winnerHistoryContent .no-history-message {
+            text-align: center;
+            padding: var(--spacing-xl, 2rem);
+            font-size: 1rem;
+            color: var(--color-text-muted, #808A9A);
+        }
+    </style>
 </head>
 <body>
 
@@ -48,9 +224,15 @@
                         </span>
                 </div>
             </div>
-
+            
+            <div class="sidebar-section winner-history-controls">
+                <h3 class="sidebar-section-title" data-i18n="sidebar.winnerHistory.title"><i class="fas fa-trophy"></i> Winner History</h3>
+                <button id="btn-show-winner-history" class="app-button secondary full-width">
+                    <i class="fas fa-list-ol"></i> <span data-i18n="btn.showWinnerHistory">Show History</span>
+                </button>
             </div>
-        <div class="sidebar-footer">
+
+        </div> <div class="sidebar-footer">
              <p>&copy; 2024-2025 Settings Panel</p>
         </div>
     </aside>
@@ -60,7 +242,8 @@
             <h1><i class="fas fa-cogs"></i> <span data-i18n="header.settings">Application Settings</span></h1>
             <div id="globalStatusMessage" class="global-status-message">Message</div>
             <div class="header-action-buttons">
-                <button type="button" id="openOverlaysBtn" class="app-button secondary" onclick="window.open('https://galaxytimer-production.up.railway.app/', '_blank')"> <i class="fas fa-layer-group"></i> <span data-i18n="btn.openOverlays">Overlays</span>
+                <button type="button" id="openOverlaysBtn" class="app-button secondary" onclick="window.open('https://galaxytimer-production.up.railway.app/', '_blank')">
+                    <i class="fas fa-layer-group"></i> <span data-i18n="btn.openOverlays">Overlays</span>
                 </button>
                 <button type="submit" form="settingsForm" id="saveAllSettingsBtn" class="app-button primary">
                     <i class="fas fa-save"></i> <span data-i18n="btn.saveAllSettings">Save Settings</span>
@@ -165,6 +348,18 @@
         </main>
     </div>
 
+    <div id="winnerHistoryModal" class="modal-overlay" style="display: none;">
+        <div class="modal-content card-style">
+            <div class="modal-header">
+                <h2 data-i18n="winnerHistory.modal.title">Winner History</h2>
+                <button id="closeWinnerHistoryModal" class="modal-close-button">&times;</button>
+            </div>
+            <div class="modal-body styled-scrollbar" id="winnerHistoryContent">
+                <p data-i18n="winnerHistory.modal.loading">Loading history...</p>
+            </div>
+        </div>
+    </div>
+
 <script>
     (()=>{
         const rarityColors = {
@@ -196,11 +391,19 @@
                 "btn.saving": "Saving...", "success.settingsSaved": "Settings saved successfully!", "btn.saved": "Saved!",
                 "error.savingFailed": "Error saving settings", "btn.saveError": "Error!",
                 "error.loadingSettings": "Error loading settings", "warning.emptySettings": "Warning: Received empty settings. Using defaults.",
-                // НОВЫЕ ПЕРЕВОДЫ СТАТУСА РОЗЫГРЫША
                 "label.giveawayStatus": "Giveaway Status:",
                 "status.active": "Running",
                 "status.idle": "Not Running",
-                "status.pendingRestart": "Winner picked, restarting soon..."
+                "status.pendingRestart": "Winner picked, restarting soon...",
+                // +++ Переводы для истории победителей +++
+                "sidebar.winnerHistory.title": "Winner History",
+                "btn.showWinnerHistory": "Show History",
+                "winnerHistory.modal.title": "Winner History",
+                "winnerHistory.modal.loading": "Loading history...",
+                "winnerHistory.modal.noHistory": "No winner history yet.",
+                "winnerHistory.label.winner": "Winner",
+                "winnerHistory.label.skinInfo": "Won",
+                "winnerHistory.label.date": "Date",
             },
             ru: {
                 "sidebar.title": "Управление",
@@ -225,11 +428,19 @@
                 "btn.saving": "Сохранение...", "success.settingsSaved": "Настройки успешно сохранены!", "btn.saved": "Сохранено!",
                 "error.savingFailed": "Ошибка сохранения настроек", "btn.saveError": "Ошибка!",
                 "error.loadingSettings": "Ошибка загрузки настроек", "warning.emptySettings": "Внимание: Получены пустые настройки. Используются значения по умолчанию.",
-                // НОВЫЕ ПЕРЕВОДЫ СТАТУСА РОЗЫГРЫША
                 "label.giveawayStatus": "Статус розыгрыша:",
                 "status.active": "Запущен",
                 "status.idle": "Не запущен",
-                "status.pendingRestart": "Победитель выбран, скоро перезапуск..."
+                "status.pendingRestart": "Победитель выбран, скоро перезапуск...",
+                 // +++ Переводы для истории победителей +++
+                "sidebar.winnerHistory.title": "История Победителей",
+                "btn.showWinnerHistory": "Показать Историю",
+                "winnerHistory.modal.title": "История Победителей",
+                "winnerHistory.modal.loading": "Загрузка истории...",
+                "winnerHistory.modal.noHistory": "История победителей пока пуста.",
+                "winnerHistory.label.winner": "Победитель",
+                "winnerHistory.label.skinInfo": "Выиграл(а)",
+                "winnerHistory.label.date": "Дата",
             },
             uk: {
                 "sidebar.title": "Керування",
@@ -254,16 +465,28 @@
                 "btn.saving": "Збереження...", "success.settingsSaved": "Налаштування успішно збережено!", "btn.saved": "Збережено!",
                 "error.savingFailed": "Помилка збереження налаштувань", "btn.saveError": "Помилка!",
                 "error.loadingSettings": "Помилка завантаження налаштувань", "warning.emptySettings": "Увага: Отримано порожні налаштування. Використовуються значення за замовчуванням.",
-                 // НОВЫЕ ПЕРЕВОДЫ СТАТУСА РОЗЫГРЫША
                 "label.giveawayStatus": "Статус розіграшу:",
                 "status.active": "Запущено",
                 "status.idle": "Не запущено",
-                "status.pendingRestart": "Переможця обрано, незабаром перезапуск..."
+                "status.pendingRestart": "Переможця обрано, незабаром перезапуск...",
+                // +++ Переводы для истории победителей +++
+                "sidebar.winnerHistory.title": "Історія Переможців",
+                "btn.showWinnerHistory": "Показати Історію",
+                "winnerHistory.modal.title": "Історія Переможців",
+                "winnerHistory.modal.loading": "Завантаження історії...",
+                "winnerHistory.modal.noHistory": "Історія переможців поки порожня.",
+                "winnerHistory.label.winner": "Переможець",
+                "winnerHistory.label.skinInfo": "Виграв(ла)",
+                "winnerHistory.label.date": "Дата",
             }
         };
         let currentLang = localStorage.getItem('appLanguage') || 'en';
-        let ws; // WebSocket переменная
-        let lastKnownGiveawayServerState = { active: false, statusKey: 'status.idle' }; // Для хранения последнего состояния
+        let ws;
+        let lastKnownGiveawayServerState = { active: false, statusKey: 'status.idle' };
+        
+        // +++ Переменные для модального окна истории +++
+        let winnerHistoryModalEl, btnShowWinnerHistoryEl, closeWinnerHistoryModalEl, winnerHistoryContentEl;
+
 
         function getTranslation(key, lang = currentLang) {
             return translations[lang]?.[key] || translations['en']?.[key] || key;
@@ -337,38 +560,40 @@
             });
             document.querySelectorAll('[data-i18n-value-default-key]').forEach(el => {
                 const valueDefaultKey = el.dataset.i18nValueDefaultKey;
-                const currentText = el.textContent.trim();
-                const isDefault = ['en', 'ru', 'uk'].some(lng => currentText === (translations[lng]?.[valueDefaultKey]));
-
-                if (isDefault || currentText === el.dataset.i18nValueDefault) {
-                    el.textContent = getTranslation(valueDefaultKey, lang);
-                }
+                // const currentText = el.textContent.trim(); // Это может быть уже переведенный текст
+                // Лучше хранить "сырое" значение или ключ для сравнения
+                // Для простоты, просто переустанавливаем текст на основе ключа
+                el.textContent = getTranslation(valueDefaultKey, lang);
             });
 
             updateSidebarDropStatus();
             updateFixedSkinOptions();
              document.querySelectorAll('#skinsTable .fileName').forEach(fn => {
-                if (["Choose...", "Выбрать...", "Обрати..."].includes(fn.textContent.trim())) {
+                // Проверяем, если текст является одним из дефолтных "Choose..." на любом языке
+                const chooseKeys = ["label.chooseFile"];
+                const isDefaultChooseText = chooseKeys.some(chooseKey => {
+                    return ['en', 'ru', 'uk'].some(l => fn.textContent.trim() === getTranslation(chooseKey, l));
+                });
+                if (isDefaultChooseText || fn.textContent.trim() === "Choose..." ) { // Дополнительная проверка на английский вариант
                     fn.textContent = getTranslation("label.chooseFile");
                 }
             });
-            // Статус розыгрыша должен обновиться автоматически, т.к. у gms-dynamic есть data-i18n-value-default-key
         }
 
         function connectWebSocket() {
+            // ... (существующий код connectWebSocket)
             const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
             const wsUrl = `${protocol}//${window.location.host}`;
             ws = new WebSocket(wsUrl);
 
             ws.onopen = () => {
                 console.log('WebSocket подключен к серверу для страницы настроек.');
-                // Сервер теперь сам отправляет начальный статус и участников при подключении
             };
 
             ws.onmessage = (event) => {
                 try {
                     const message = JSON.parse(event.data);
-                    console.log('WS Сообщение получено:', message); // Для отладки
+                    console.log('WS Сообщение получено:', message);
                     if (message.type === 'updateParticipants') {
                         const countElement = document.querySelector('.pc-dynamic');
                         if (countElement && typeof message.participants !== 'undefined') {
@@ -378,8 +603,7 @@
                         lastKnownGiveawayServerState = { active: message.active, statusKey: message.statusKey };
                         updateGiveawayStatusDisplay(message.active, message.statusKey);
                     } else if (message.type === 'settings-updated') {
-                        console.log('Настройки обновлены на сервере. Рекомендуется перезагрузить или обновить данные.');
-                        // showMessage('Settings have been updated on the server. You might want to refresh.', 'info');
+                        console.log('Настройки обновлены на сервере.');
                     }
                 } catch (error) {
                     console.error('Ошибка обработки WebSocket сообщения:', error);
@@ -387,30 +611,28 @@
             };
 
             ws.onclose = () => {
-                console.log('WebSocket отключен. Попытка переподключения через 3 секунды...');
+                console.log('WebSocket отключен. Попытка переподключения...');
                 setTimeout(connectWebSocket, 3000);
             };
 
             ws.onerror = (error) => {
                 console.error('WebSocket ошибка:', error);
-                // ws.close(); // Можно добавить, чтобы убедиться, что соединение закрыто перед переподключением
             };
         }
 
         function updateGiveawayStatusDisplay(isActive, statusKeyToUse) {
+            // ... (существующий код updateGiveawayStatusDisplay)
             const statusElement = document.querySelector('.gms-dynamic');
             const effectiveStatusKey = statusKeyToUse || (isActive ? 'status.active' : 'status.idle');
 
             if (statusElement) {
                 statusElement.textContent = getTranslation(effectiveStatusKey);
-                // Добавляем/обновляем класс для возможной стилизации в CSS и для data-i18n
                 statusElement.className = `status-value gms-dynamic status-${effectiveStatusKey.split('.').pop()}`;
                 statusElement.dataset.i18nValueDefaultKey = effectiveStatusKey;
             }
         }
 
-
-        function updateSidebarDropStatus() {
+        function updateSidebarDropStatus() { /* ... существующий код ... */ 
             const modeSelect = document.getElementById('dropMode');
             if (!modeSelect) return;
             const mode = modeSelect.value;
@@ -463,9 +685,7 @@
                 sdm.textContent = baseModeText;
             }
         }
-
-
-        function fetchCount(){
+        function fetchCount(){ /* ... существующий код ... */ 
              const countElement = document.querySelector('.pc-dynamic');
             if (!countElement) return;
             fetch('/participants-count')
@@ -476,7 +696,7 @@
              })
              .catch(e => { console.error('Error fetching count:', e); countElement.textContent = 'Err'; });
         }
-        async function uploadFile(file){
+        async function uploadFile(file){ /* ... существующий код ... */ 
             const fd = new FormData(); fd.append('file', file);
             try {
                 const res = await fetch('/upload-skin',{method:'POST',body:fd});
@@ -488,19 +708,18 @@
                 throw error;
             }
         }
-        function updateRarityColor(selectElement){
+        function updateRarityColor(selectElement){ /* ... существующий код ... */ 
              const colorIndicator = selectElement.closest('td').querySelector('.rarity-color-indicator-new');
             if (colorIndicator) { colorIndicator.style.backgroundColor = rarityColors[selectElement.value] || '#ccc'; }
         }
-
-        function updateFixedSkinOptions(){
+        function updateFixedSkinOptions(){ /* ... существующий код ... */ 
             const fs = document.getElementById('fixedSkin');
             if (!fs) return;
             const prevValue = fs.value;
             fs.innerHTML = '';
             const placeholderOption = new Option(getTranslation('label.selectSkinPlaceholder'), "");
             placeholderOption.disabled = true;
-            placeholderOption.selected = true; // Убедимся, что плейсхолдер выбран, если нет других опций
+            placeholderOption.selected = true; 
             fs.add(placeholderOption);
 
             document.querySelectorAll('#skinsTable tbody tr').forEach((tr, i) => {
@@ -510,11 +729,10 @@
             });
 
             if (prevValue !== null && prevValue !== '' && fs.querySelector(`option[value="${prevValue}"]`)) { fs.value = prevValue; }
-            else { fs.value = ""; } // Если предыдущее значение не найдено, сбрасываем на плейсхолдер
+            else { fs.value = ""; } 
             updateSidebarDropStatus();
         }
-
-        function addSkinRow(skin = {}) {
+        function addSkinRow(skin = {}) { /* ... существующий код ... */ 
             const tb = document.querySelector('#skinsTable tbody');
             if (!tb) return;
             const tr = document.createElement('tr');
@@ -624,8 +842,7 @@
             nameI.oninput = updateFixedSkinOptions;
             typeI.oninput = updateFixedSkinOptions;
         }
-
-        function buildConfig(){
+        function buildConfig(){ /* ... существующий код ... */ 
              const cfg = {
                 chatDelay: 130, skins: [], dropMode: document.getElementById('dropMode').value,
                 fixedSkin: null, fixedSkinIndex: null, rarityChances: {}
@@ -645,7 +862,7 @@
                 const selIdxStr = document.getElementById('fixedSkin')?.value;
                 if (selIdxStr!==null && selIdxStr!=="" && !isNaN(selIdxStr)) {
                     const idx = parseInt(selIdxStr, 10);
-                    if (idx>=0 && idx<cfg.skins.length) { cfg.fixedSkin=cfg.skins[idx]; cfg.fixedSkinIndex=idx; }
+                    if (idx>=0 && idx<cfg.skins.length) { cfg.fixedSkin=cfg.skins[idx]; cfg.fixedSkinIndex=idx; } // Сохраняем и объект и индекс
                     else { cfg.fixedSkin=null; cfg.fixedSkinIndex=null; }
                 } else { cfg.fixedSkin=null; cfg.fixedSkinIndex=null; }
             }
@@ -666,7 +883,7 @@
             }
             cfg.isValid = !hasInvalidChance; return cfg;
         }
-        function showMessage(text, type = 'info', duration = 4000) {
+        function showMessage(text, type = 'info', duration = 4000) { /* ... существующий код ... */ 
             const msgEl = document.getElementById('globalStatusMessage');
             if(!msgEl) return;
             msgEl.textContent = text; msgEl.className = `global-status-message ${type}`;
@@ -679,7 +896,7 @@
                  delete msgEl.timeoutId;
             }, duration);
         }
-        function saveSettings(){
+        function saveSettings(){ /* ... существующий код ... */ 
              const cfg = buildConfig();
             if (!cfg.isValid) { showMessage(getTranslation('error.invalidRarity'), 'error'); return; }
             if (cfg.dropMode==='preset' && !cfg.fixedSkin && cfg.skins.length>0) { showMessage(getTranslation('error.presetNoSkin'),'error'); return;}
@@ -709,26 +926,137 @@
             });
         }
 
-        function init(){
-            fetchCount(); // Для первоначальной загрузки счетчика
-            connectWebSocket(); // Инициализируем WebSocket соединение
+        // +++ Функции для истории победителей +++
+        function initWinnerHistoryFeature() {
+            winnerHistoryModalEl = document.getElementById('winnerHistoryModal');
+            btnShowWinnerHistoryEl = document.getElementById('btn-show-winner-history');
+            closeWinnerHistoryModalEl = document.getElementById('closeWinnerHistoryModal');
+            winnerHistoryContentEl = document.getElementById('winnerHistoryContent');
 
-            // Запрос начального статуса розыгрыша при загрузке страницы
-            fetch('/get-giveaway-status')
-                .then(r => r.ok ? r.json() : Promise.reject(`HTTP error ${r.status}: ${r.statusText}`))
-                .then(data => {
-                    if (data && typeof data.active !== 'undefined' && data.statusKey) {
-                        lastKnownGiveawayServerState = { active: data.active, statusKey: data.statusKey };
-                        updateGiveawayStatusDisplay(data.active, data.statusKey);
-                    } else {
-                         console.warn('Initial giveaway status data is incomplete:', data);
-                         updateGiveawayStatusDisplay(false, 'status.idle'); // Фоллбэк
+            if (btnShowWinnerHistoryEl) {
+                btnShowWinnerHistoryEl.addEventListener('click', () => {
+                    fetchAndDisplayWinnerHistory();
+                    if(winnerHistoryModalEl) winnerHistoryModalEl.classList.add('visible');
+                    // Обновляем переводы статических элементов модалки при открытии
+                    if(winnerHistoryModalEl) {
+                        winnerHistoryModalEl.querySelectorAll('[data-i18n]').forEach(el => {
+                             const key = el.dataset.i18n;
+                             const translation = getTranslation(key);
+                             const targetTextElement = el.querySelector('span') || el; // Если это кнопка со span или просто h2/p
+                             if(targetTextElement.firstChild && targetTextElement.firstChild.nodeType === Node.TEXT_NODE) {
+                                 targetTextElement.firstChild.textContent = translation;
+                             } else if (!el.querySelector('i')) { // Не трогаем иконки
+                                 targetTextElement.textContent = translation;
+                             }
+                        });
                     }
-                })
-                .catch(e => {
-                    console.error('Error fetching initial giveaway status:', e);
-                    updateGiveawayStatusDisplay(false, 'status.idle'); // Фоллбэк в случае ошибки сети
                 });
+            }
+
+            if (closeWinnerHistoryModalEl) {
+                closeWinnerHistoryModalEl.addEventListener('click', () => {
+                    if(winnerHistoryModalEl) winnerHistoryModalEl.classList.remove('visible');
+                });
+            }
+
+            if (winnerHistoryModalEl) {
+                winnerHistoryModalEl.addEventListener('click', (event) => {
+                    if (event.target === winnerHistoryModalEl) {
+                        winnerHistoryModalEl.classList.remove('visible');
+                    }
+                });
+            }
+        }
+
+        async function fetchAndDisplayWinnerHistory() {
+            if (!winnerHistoryContentEl) return;
+            winnerHistoryContentEl.innerHTML = `<p data-i18n="winnerHistory.modal.loading">${getTranslation('winnerHistory.modal.loading')}</p>`;
+
+            try {
+                const response = await fetch('/get-winner-history');
+                if (!response.ok) {
+                    throw new Error(`HTTP error ${response.status}`);
+                }
+                const history = await response.json();
+                renderWinnerHistoryUI(history);
+            } catch (error) {
+                console.error('Error fetching winner history:', error);
+                winnerHistoryContentEl.innerHTML = `<p class="error" style="color: var(--color-error);">${getTranslation('error.loadingSettings')}: ${error.message}</p>`;
+            }
+        }
+
+        function renderWinnerHistoryUI(history) {
+            if (!winnerHistoryContentEl) return;
+
+            if (!history || history.length === 0) {
+                winnerHistoryContentEl.innerHTML = `<p class="no-history-message" data-i18n="winnerHistory.modal.noHistory">${getTranslation('winnerHistory.modal.noHistory')}</p>`;
+                return;
+            }
+
+            const listHtml = history.map(entry => {
+                const skinLabel = getTranslation('winnerHistory.label.skinInfo');
+                const dateLabel = getTranslation('winnerHistory.label.date');
+                // const winnerLabel = getTranslation('winnerHistory.label.winner'); // Не используется в текущем шаблоне, но есть
+
+                let skinDisplayName = entry.skinName;
+                if (entry.skinWeaponType && entry.skinWeaponType !== "Награда" && entry.skinWeaponType !== "Unknown") {
+                    skinDisplayName = `${entry.skinWeaponType} | ${entry.skinName}`;
+                }
+
+                const date = new Date(entry.timestamp);
+                // Определение локали для форматирования даты
+                let langForDate = currentLang.split('-')[0]; // ru, en, uk
+                if (!['ru', 'en', 'uk'].includes(langForDate)) langForDate = 'default'; // Фоллбэк
+
+                const formattedDate = `${date.toLocaleDateString(langForDate, {day: '2-digit', month: '2-digit', year: 'numeric'})} ${date.toLocaleTimeString(langForDate, { hour: '2-digit', minute: '2-digit' })}`;
+                
+                const rarityClass = entry.skinRarity ? entry.skinRarity.replace(/\s+/g, '-') : 'Unknown';
+                const rarityText = entry.skinRarity && entry.skinRarity !== "Unknown" && entry.skinRarity !== "Награда"
+                    ? `<span class="skin-rarity ${rarityClass}">${entry.skinRarity}</span>`
+                    : '';
+
+                const imageHtml = entry.skinImage
+                    ? `<img src="${entry.skinImage}" alt="${entry.skinName || 'Skin image'}">`
+                    : `<span class="no-image-placeholder"><i class="fas fa-gift"></i></span>`;
+
+                return `
+                    <li class="winner-history-item">
+                        <div class="winner-history-item-image">
+                            ${imageHtml}
+                        </div>
+                        <div class="winner-history-item-details">
+                            <p><strong class="winner-name">${entry.winnerName}</strong></p>
+                            <p>${skinLabel}: <strong class="skin-info">${skinDisplayName}</strong> ${rarityText}</p>
+                            <p class="winner-history-item-date">${dateLabel}: ${formattedDate}</p>
+                        </div>
+                    </li>
+                `;
+            }).join('');
+
+            winnerHistoryContentEl.innerHTML = `<ul class="winner-history-list">${listHtml}</ul>`;
+        }
+
+
+        function init(){
+            fetchCount();
+            connectWebSocket();
+            initWinnerHistoryFeature(); // <--- Инициализация истории победителей
+
+            fetch('/get-giveaway-status')
+            .then(r => r.ok ? r.json() : Promise.reject(`HTTP error ${r.status}: ${r.statusText}`))
+            .then(data => {
+                if (data && typeof data.active !== 'undefined' && data.statusKey) {
+                    lastKnownGiveawayServerState = { active: data.active, statusKey: data.statusKey };
+                    updateGiveawayStatusDisplay(data.active, data.statusKey);
+                } else {
+                     console.warn('Initial giveaway status data is incomplete:', data);
+                     updateGiveawayStatusDisplay(false, 'status.idle');
+                }
+            })
+            .catch(e => {
+                console.error('Error fetching initial giveaway status:', e);
+                updateGiveawayStatusDisplay(false, 'status.idle');
+            });
 
 
             document.getElementById('btn-start')?.addEventListener('click', ()=>fetch('/start-collection',{method:'POST'}));
@@ -755,15 +1083,26 @@
                 const cdm = cfg.dropMode || 'random';
                 if(dmSel) dmSel.value = cdm;
                 if(psDiv) psDiv.style.display = cdm === 'preset' ? 'block' : 'none';
+                
+                // Устанавливаем выбранный скин в #fixedSkin, если это preset режим
+                // cfg.fixedSkin теперь должен быть объектом, а не индексом, после сохранения настроек
+                if (cdm === 'preset' && cfg.skins && cfg.skins.length > 0 && fsSel) {
+                    let skinIndexToSelect = -1;
+                    if (cfg.fixedSkin && typeof cfg.fixedSkin.name === 'string') { // Если fixedSkin - это объект скина
+                        skinIndexToSelect = (cfg.skins || []).findIndex(s => 
+                            s.name === cfg.fixedSkin.name && 
+                            s.weapontype === cfg.fixedSkin.weapontype &&
+                            s.rarity === cfg.fixedSkin.rarity
+                        );
+                    } else if (typeof cfg.fixedSkinIndex === 'number' && cfg.fixedSkinIndex >= 0 && cfg.fixedSkinIndex < cfg.skins.length) {
+                        // Фоллбэк, если fixedSkin не объект, а есть fixedSkinIndex
+                         skinIndexToSelect = cfg.fixedSkinIndex;
+                    }
+                    fsSel.value = skinIndexToSelect !== -1 ? skinIndexToSelect.toString() : "";
 
-                if (cdm==='preset' && cfg.skins && cfg.skins.length > 0 && fsSel) {
-                    if (cfg.fixedSkinIndex !== null && cfg.fixedSkinIndex >= 0 && cfg.fixedSkinIndex < cfg.skins.length) {
-                        fsSel.value = cfg.fixedSkinIndex;
-                    } else if (cfg.fixedSkin?.imageName) {
-                        const idx = (cfg.skins||[]).findIndex(s => s.imageName === cfg.fixedSkin.imageName);
-                        fsSel.value = idx >= 0 ? idx : "";
-                    } else { fsSel.value = ""; }
-                } else if (cdm==='preset' && fsSel) { fsSel.value = ""; }
+                } else if (fsSel) {
+                     fsSel.value = ""; // Сбрасываем, если не preset или нет скинов
+                }
 
 
                 const defChances = {'Mil-Spec':79.923,'Restricted':15.984,'Classified':3.197,'Covert':0.639,'Rare Special Items':0.256};
@@ -778,12 +1117,8 @@
                 for(const k in defChances){ const el=document.getElementById('chance'+k.replace(/\W/g,'')); if(el) el.value = defChances[k];}
             })
             .finally(() => {
-                // Установка языка и обновление статусов должно происходить после загрузки всех данных
-                setLanguage(currentLang);
-                updateSidebarDropStatus(); // Это обновит статус дроп режима
-                // Статус розыгрыша уже должен быть установлен через fetch /get-giveaway-status или WebSocket
-                // Если fetch /get-giveaway-status еще не завершился, setLanguage может примениться раньше,
-                // но data-i18n-value-default-key на элементе gms-dynamic должен обеспечить правильный текст при обновлении
+                setLanguage(currentLang); // Применяем язык
+                updateSidebarDropStatus(); // Обновляем отображение режима дропа в сайдбаре
             });
         }
         document.addEventListener('DOMContentLoaded', init);
