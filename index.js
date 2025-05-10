@@ -215,7 +215,7 @@ chat.on('message', (_ch, tags, msg, self) => {
     userId:       user.id   // <<< вот здесь важно передать userId
   });
 
-  // 4) Теперь подписываемся на EventSub через WS
+  // 4) Теперь подписываемся на EventSub через 
   const listener = new EventSubWsListener({ authProvider: authProv, apiClient: api });
   listener.onChannelRedemptionAddForReward(
     user.id,
