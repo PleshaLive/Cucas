@@ -361,6 +361,14 @@
     </div>
 
 <script>
+
+     if (!localStorage.getItem('rememberedUserCredentials')) {
+        // Чтобы избежать цикла перенаправлений, если login.html почему-то не загружается,
+        // можно добавить проверку, что мы не на login.html, но это не для settings.html.
+        console.log('Пользователь не "запомнен" или не вошел в систему. Перенаправление на страницу входа.');
+        window.location.href = '/login.html'; // Убедитесь, что путь правильный
+    }
+    
     (()=>{
         const rarityColors = {
             'Mil-Spec':'#4B58E3','Restricted':'#AF5DE5',

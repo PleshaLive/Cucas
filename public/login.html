@@ -1,27 +1,274 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-  <title>Вход в Dashboard</title>
-  <link href="https://fonts.googleapis.com/css2?family=Blender+Pro:wght@500&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="login.css" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Вход — Панель Управления</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="settings.css">
+    <style>
+        /* Базовые стили, если settings.css не загрузился или не содержит нужных переменных */
+        :root {
+            --color-background: #0D0A1A;
+            --color-surface: #151127;
+            --color-text-primary: #F0F2F5;
+            --color-text-secondary: #B0B8C5;
+            --color-primary-base: #7A64B9;
+            --color-primary-light: #9370DB;
+            --color-primary-dark: #6A54A9; /* Пример */
+            --color-border: #3B325C;
+            --color-border-input: #2A244A;
+            --color-surface-secondary: #221C3B;
+            --color-text-input: #E0E2E5;
+            --color-error: #ef4444;
+            --rgb-primary: 122, 100, 185;
+            --rgb-error: 239, 68, 68;
+
+            --spacing-xs: 0.25rem;
+            --spacing-sm: 0.5rem;
+            --spacing-md: 1rem;
+            --spacing-lg: 1.5rem;
+            --spacing-xl: 2rem;
+
+            --border-radius-md: 8px;
+            --border-radius-lg: 12px;
+            --border-radius-xl: 16px;
+
+            --font-weight-medium: 500;
+            --font-weight-semibold: 600;
+            --font-weight-bold: 700;
+
+            --glow-primary: 0 0 12px rgba(var(--rgb-primary, 122,100,185),0.6);
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: var(--color-background, #0D0A1A);
+            font-family: 'Inter', sans-serif;
+            color: var(--color-text-primary, #F0F2F5);
+            margin: 0;
+            padding: var(--spacing-md, 1rem);
+        }
+        .login-container {
+            background-color: var(--color-surface, #151127);
+            padding: var(--spacing-xl, 2rem);
+            border-radius: var(--border-radius-xl, 16px);
+            border: 1px solid var(--color-border, #3B325C);
+            box-shadow: 0 10px 35px rgba(0,0,0,0.35), var(--glow-primary, 0 0 12px rgba(122,100,185,0.6));
+            width: 100%;
+            max-width: 420px;
+        }
+        .login-container h1 {
+            text-align: center;
+            color: var(--color-primary-light, #9370DB);
+            margin-top: 0;
+            margin-bottom: var(--spacing-lg, 1.5rem);
+            font-size: 1.8rem;
+            font-weight: var(--font-weight-bold, 700);
+        }
+        .form-group {
+            margin-bottom: var(--spacing-md, 1rem);
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: var(--spacing-sm, 0.5rem);
+            color: var(--color-text-secondary, #B0B8C5);
+            font-weight: var(--font-weight-medium, 500);
+            font-size: 0.9rem;
+        }
+        .form-group .input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+        .form-group .input-wrapper i {
+            position: absolute;
+            left: var(--spacing-md, 1rem);
+            color: var(--color-text-secondary, #B0B8C5);
+            font-size: 0.9em;
+        }
+        .form-group input[type="text"],
+        .form-group input[type="password"] {
+            width: 100%;
+            padding: var(--spacing-sm, 0.75rem); /* Увеличил паддинг для комфорта */
+            padding-left: calc(var(--spacing-md, 1rem) + var(--spacing-md, 1rem) + var(--spacing-xs, 0.25rem)); /* Место для иконки */
+            border-radius: var(--border-radius-md, 8px);
+            border: 1px solid var(--color-border-input, #2A244A);
+            background-color: var(--color-surface-secondary, #221C3B);
+            color: var(--color-text-input, #E0E2E5);
+            font-size: 1rem;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+        .form-group input[type="text"]:focus,
+        .form-group input[type="password"]:focus {
+            outline: none;
+            border-color: var(--color-primary-base, #7A64B9);
+            box-shadow: 0 0 0 3px rgba(var(--rgb-primary, 122, 100, 185), 0.3);
+        }
+        .form-group-checkbox {
+            display: flex;
+            align-items: center;
+            margin-bottom: var(--spacing-lg, 1.5rem);
+            gap: var(--spacing-sm, 0.5rem);
+        }
+        .form-group-checkbox input[type="checkbox"] {
+            accent-color: var(--color-primary-base, #7A64B9);
+            width: 18px; /* Немного увеличил */
+            height: 18px;
+            cursor: pointer;
+        }
+        .form-group-checkbox label {
+            margin-bottom: 0; /* Убрал отступ снизу у метки чекбокса */
+            color: var(--color-text-secondary, #B0B8C5);
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+        .login-button { /* Используем класс app-button из settings.css, если он есть */
+            width: 100%;
+            padding: var(--spacing-md, 0.9rem);
+            font-size: 1.05rem;
+            font-weight: var(--font-weight-semibold, 600);
+        }
+        /* Стили для app-button, если settings.css не загружен или не содержит их */
+        .app-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: var(--spacing-sm, 0.6em) var(--spacing-md, 1.2em);
+            border-radius: var(--border-radius-md, 8px);
+            font-weight: var(--font-weight-semibold, 600);
+            text-decoration: none;
+            cursor: pointer;
+            transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, transform 0.1s ease;
+            border: 1px solid transparent;
+            font-size: 0.95rem; /* Базовый размер */
+            gap: 0.5em;
+        }
+        .app-button.primary {
+            background-color: var(--color-primary-base, #7A64B9);
+            color: white;
+            border-color: var(--color-primary-base, #7A64B9);
+        }
+        .app-button.primary:hover {
+            background-color: var(--color-primary-dark, #6A54A9);
+            border-color: var(--color-primary-dark, #6A54A9);
+        }
+        .app-button:active {
+            transform: scale(0.98);
+        }
+        .app-button i {
+            font-size: 0.95em; /* Размер иконки относительно текста кнопки */
+        }
+
+        .error-message {
+            color: var(--color-error, #ef4444);
+            background-color: rgba(var(--rgb-error, 239,68,68), 0.1);
+            border: 1px solid rgba(var(--rgb-error, 239,68,68), 0.3);
+            padding: var(--spacing-sm, 0.75rem);
+            border-radius: var(--border-radius-md, 8px);
+            margin-bottom: var(--spacing-md, 1rem);
+            text-align: center;
+            font-size: 0.9rem;
+            display: none; /* Изначально скрыто */
+        }
+    </style>
 </head>
 <body>
-  <div class="login-container">
-    <form action="/login" method="post" class="login-form">
-      <div class="form-group">
-        <label for="username">ЛОГИН</label>
-        <input id="username" type="text" name="username" required />
-      </div>
-      <div class="form-group">
-        <label for="password">ПАРОЛЬ</label>
-        <input id="password" type="password" name="password" required />
-      </div>
-      <button type="submit">ВОЙТИ</button>
-      <!-- Если есть ошибка, можно отобразить сообщение. Пример ниже можно допилить скриптом -->
-      <p class="error">Неверный логин или пароль</p>
-    </form>
-  </div>
+    <div class="login-container">
+        <h1><i class="fas fa-shield-alt"></i> Панель Управления</h1>
+        <div id="errorMessage" class="error-message"></div>
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="username">Имя пользователя</label>
+                <div class="input-wrapper">
+                    <i class="fas fa-user"></i>
+                    <input type="text" id="username" name="username" required autocomplete="username">
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="password">Пароль</label>
+                <div class="input-wrapper">
+                    <i class="fas fa-lock"></i>
+                    <input type="password" id="password" name="password" required autocomplete="current-password">
+                </div>
+            </div>
+            <div class="form-group-checkbox">
+                <input type="checkbox" id="rememberMe" name="rememberMe">
+                <label for="rememberMe">Запомнить меня</label>
+            </div>
+            <button type="submit" class="app-button primary login-button">
+                <i class="fas fa-sign-in-alt"></i> Войти
+            </button>
+        </form>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const loginForm = document.getElementById('loginForm');
+            const usernameInput = document.getElementById('username');
+            const passwordInput = document.getElementById('password');
+            const rememberMeCheckbox = document.getElementById('rememberMe');
+            const errorMessageDiv = document.getElementById('errorMessage');
+
+            // Проверяем, не был ли пользователь уже "запомнен" и не пытается ли он зайти на login.html снова
+            // Это также предотвратит бесконечный цикл, если бы что-то пошло не так с редиректом.
+            if (localStorage.getItem('rememberedUserCredentials') && window.location.pathname.includes('login.html')) {
+                console.log('User was remembered. Redirecting to settings...');
+                window.location.href = '/settings.html'; // или просто 'settings.html'
+                return; // Предотвращаем дальнейшее выполнение, если пользователь уже перенаправлен
+            }
+
+            loginForm.addEventListener('submit', function(event) {
+                event.preventDefault();
+                errorMessageDiv.textContent = '';
+                errorMessageDiv.style.display = 'none';
+
+                const username = usernameInput.value.trim();
+                const password = passwordInput.value;
+
+                // ВНИМАНИЕ: Это НЕ настоящая аутентификация.
+                // Здесь должна быть проверка на сервере.
+                // Для примера, мы просто проверяем, что поля не пустые.
+                if (!username || !password) {
+                    errorMessageDiv.textContent = 'Имя пользователя и пароль обязательны.';
+                    errorMessageDiv.style.display = 'block';
+                    return;
+                }
+
+                // ИСКУССТВЕННАЯ ПРОВЕРКА (для примера, можно убрать или изменить)
+                // if (username !== "admin" || password !== "password") {
+                //     errorMessageDiv.textContent = 'Неверное имя пользователя или пароль.';
+                //     errorMessageDiv.style.display = 'block';
+                //     return;
+                // }
+
+                if (rememberMeCheckbox.checked) {
+                    // Сохраняем в localStorage. ВНИМАНИЕ: ЭТО НЕБЕЗОПАСНО ДЛЯ РЕАЛЬНЫХ ДАННЫХ!
+                    const credentials = {
+                        username: username,
+                        // Пароль в localStorage - ОЧЕНЬ ПЛОХАЯ ИДЕЯ для продакшена.
+                        // Это сделано только для выполнения условия "запомнить чтоб больше не надо было вводить".
+                        password_DO_NOT_USE_IN_PROD: password, // Четкое указание на небезопасность
+                        remembered: true
+                    };
+                    localStorage.setItem('rememberedUserCredentials', JSON.stringify(credentials));
+                    console.log('Учетные данные сохранены в localStorage (НЕБЕЗОПАСНАЯ ПРАКТИКА!)');
+                } else {
+                    // Если "Запомнить меня" не выбрано, удаляем любые ранее сохраненные учетные данные
+                    localStorage.removeItem('rememberedUserCredentials');
+                }
+
+                // Имитация успешного входа и перенаправление
+                console.log('Вход успешен (симуляция). Перенаправление на settings.html...');
+                window.location.href = '/settings.html'; // или просто 'settings.html'
+            });
+        });
+    </script>
 </body>
 </html>
