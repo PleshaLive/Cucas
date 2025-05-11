@@ -496,51 +496,78 @@
 
     // Функция анимации победителя (без изменений, как в исходном варианте)
     function animateWinnerHex(winnerItem) {
-      const centerLine = document.getElementById('centerLine');
-      const centerRect = centerLine.getBoundingClientRect();
-      const cloneWidth = 280, cloneHeight = 368;
-      const centerX = centerRect.left + centerRect.width / 2;
-      const centerY = centerRect.top + centerRect.height / 2;
+  const centerLine = document.getElementById('centerLine');
+  if (!centerLine) {
+    console.error('[Overlay] CRITICAL: #centerLine element not found in animateWinnerHex!');
+    return;
+  }
+  const centerRect = centerLine.getBoundingClientRect();
+  // --- НАЧАЛО ДОБАВЛЕННОГО ЛОГИРОВАНИЯ ---
+  console.log('[animateWinnerHex] INPUTS:');
+  console.log('[animateWinnerHex] centerLine Rect:', JSON.stringify(centerRect));
+  console.log('[animateWinnerHex] winnerItem received:', winnerItem ? winnerItem.outerHTML.substring(0, 100) + '...' : 'null');
+  // --- КОНЕЦ ДОБАВЛЕННОГО ЛОГИРОВАНИЯ ---
 
-      const clone = winnerItem.cloneNode(true);
-      clone.id = 'floatingWinner';
-      clone.classList.add('winnerFinal');
+  const cloneWidth = 280, cloneHeight = 368;
+  const centerX = centerRect.left + centerRect.width / 2;
+  const centerY = centerRect.top + centerRect.height / 2;
 
-      const overlay = document.getElementById('winnerOverlay');
-      overlay.innerHTML = '';
-      overlay.classList.add('visible');
-      overlay.appendChild(clone);
+  // --- ДОБАВЛЕННОЕ ЛОГИРОВАНИЕ РАССЧИТАННЫХ КООРДИНАТ ---
+  const calculatedLeft = (centerX - cloneWidth / 2 + 229);
+  const calculatedTop = (centerY - cloneHeight / 2 - -290); // т.е. + 290
+  console.log(`[animateWinnerHex] Calculated centerX: ${centerX}, centerY: ${centerY}`);
+  console.log(`[animateWinnerHex] JS calculated clone.style.left: ${calculatedLeft}px`);
+  console.log(`[animateWinnerHex] JS calculated clone.style.top: ${calculatedTop}px`);
+  // --- КОНЕЦ ДОБАВЛЕННОГО ЛОГИРОВАНИЯ ---
 
-      // Позиционируем clone так, чтобы его центр совпадал с центром centerLine
-      clone.style.position = 'absolute';
-      clone.style.width = cloneWidth + 'px';
-      clone.style.height = cloneHeight + 'px';
-      clone.style.left = (centerX - cloneWidth / 2 + 229) + 'px';
-      clone.style.top  = (centerY - cloneHeight / 2 - -290) + 'px';
-      clone.style.transition = 'opacity 1s ease-out';
-      clone.style.opacity = '1';
+  const clone = winnerItem.cloneNode(true);
+  clone.id = 'floatingWinner';
+  clone.classList.add('winnerFinal');
 
-      // При необходимости убираем фон участников
-      const participantsBG = clone.querySelector('.participantsBG');
-      if (participantsBG) {
-        participantsBG.style.display = 'none';
-      }
+  const overlay = document.getElementById('winnerOverlay');
+  if (!overlay) {
+    console.error('[Overlay] CRITICAL: #winnerOverlay element not found in animateWinnerHex!');
+    return;
+  }
+  overlay.innerHTML = '';
+  overlay.classList.add('visible');
+  overlay.appendChild(clone);
 
-      // Добавляем подпись победителя
-      const winnerDiv = document.createElement('div');
-      winnerDiv.className = 'winner';
-      winnerDiv.textContent = 'winner';
-      clone.appendChild(winnerDiv);
+  clone.style.position = 'absolute';
+  clone.style.width = cloneWidth + 'px'; // Будет переопределено CSS .winnerFinal из-за !important, если width/height там есть
+  clone.style.height = cloneHeight + 'px';// Будет переопределено CSS .winnerFinal из-за !important
+  clone.style.left = calculatedLeft + 'px';
+  clone.style.top  = calculatedTop + 'px';
+  clone.style.transition = 'opacity 1s ease-out';
+  clone.style.opacity = '1';
 
-      // Через 3 секунды запускается fade out без дополнительных перемещений
-      setTimeout(() => {
-          clone.style.opacity = '0';
-          clone.addEventListener('transitionend', () => {
-              overlay.classList.remove('visible');
-              overlay.innerHTML = '';
-          });
-      }, 8750);
+  // ... остальной код функции (participantsBG, winnerDiv, setTimeout)
+  // Убедитесь, что эта часть не вызывает ошибок
+  const participantsBG = clone.querySelector('.participantsBG');
+  if (participantsBG) {
+    participantsBG.style.display = 'none';
+  }
+
+  const winnerDiv = document.createElement('div');
+  winnerDiv.className = 'winner';
+  winnerDiv.textContent = 'winner'; // Текст подписи
+  clone.appendChild(winnerDiv);
+
+  console.log('[animateWinnerHex] Setting timeout for clone opacity and #winnerOverlay removal (8750ms)');
+  setTimeout(() => {
+    if (clone) { // Проверка, что клон еще существует
+      console.log('[animateWinnerHex timeout] Setting clone opacity to 0');
+      clone.style.opacity = '0';
+      clone.addEventListener('transitionend', () => {
+        if (overlay) { // Проверка, что оверлей еще существует
+          console.log('[animateWinnerHex clone transitionend] Hiding #winnerOverlay');
+          overlay.classList.remove('visible');
+          overlay.innerHTML = '';
+        }
+      }, { once: true });
     }
+  }, 8750);
+}
 
     // Звук "тиков" при прокрутке
     function startTickSoundCheck() {
