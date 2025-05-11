@@ -299,7 +299,7 @@ app.post('/roll', (_req, res) => {
            prizeMessageText = skinNamePart;
        }
        chat.say(CHANNEL_NAME, `🎉 Congratulations @${winner}, you’ve won a ${prizeMessageText}!`);
-   }, chatDelay * 8000);
+   }, chatDelay * 1000);
 
     broadcast({
         type: 'roll',
