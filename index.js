@@ -340,7 +340,7 @@ app.post('/roll', (_req, res) => {
         autoRestartTimer = null;
         console.log('[AUTO-RESTART] Запускается новый розыгрыш через 120 секунд.');
         startNewCollectionLogic(true);
-    }, 130000);
+    }, 135000);
 
     res.json({ success: true, winner, wonSkin: actualWonSkin }); // Возвращаем информацию о выигранном скине
 });
