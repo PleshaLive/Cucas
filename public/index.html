@@ -71,7 +71,25 @@
           fadeInOverlay();
           playVideo();
         } else if (data.type === 'roll') {
-          startScrolling(data.participants || []);
+          // --- НАЧАЛО ИЗМЕНЕНИЙ ---
+          const serverDeterminedWinnerName = data.winner;
+          const serverDeterminedWinningSkin = data.selectedSkinToDisplay || (data.dropMode === 'preset' ? data.fixedSkin : null);
+
+          // Обновляем глобальные настройки клиента, если они пришли с сервера и могут повлиять на отображение
+          // Эти настройки (dropMode, fixedSkin) используются в onRollAnimationEnd и startScrolling
+          if (data.dropMode) {
+            overlaySettings.dropMode = data.dropMode;
+          }
+          if (data.fixedSkin) { // data.fixedSkin от сервера должно быть объектом скина, если dropMode='preset'
+            overlaySettings.fixedSkin = data.fixedSkin;
+          }
+          // scrollSpeed тоже может приходить от сервера и влиять на анимацию, если нужно
+          // if (data.scrollSpeed) {
+          //   scrollSpeed = data.scrollSpeed;
+          // }
+
+          startScrolling(data.participants || [], serverDeterminedWinnerName, serverDeterminedWinningSkin);
+          // --- КОНЕЦ ИЗМЕНЕНИЙ ---
         } else if (data.type === 'updateParticipants') {
           updateParticipantsOverlay(data.participants);
         } else if (data.type === 'settings-updated') {
@@ -245,55 +263,76 @@
     }
 
     // Функция прокрутки скинов
-    function startScrolling(participantsList) {
+    // Функция прокрутки скинов
+    function startScrolling(participantsList, winnerName, winningSkin) { // Добавлены winnerName и winningSkin
       const stripDiv = document.getElementById('skinStrip');
-      stripDiv.classList.remove('initial-animation');
+      stripDiv.classList.remove('initial-animation'); // Сброс предыдущей анимации, если была
+      stripDiv.style.animation = ''; // Явно очищаем анимацию
+      void stripDiv.offsetWidth; // Трюк для перезапуска CSS анимации, если потребуется немедленное применение новой
+
       stripDiv.style.transition = 'none';
       stripDiv.style.transform = 'translateX(0)';
       stripDiv.innerHTML = '';
 
-      const totalItems = 75;
+      const totalItems = 75; // Общее количество элементов в ленте
+      // Индекс элемента, который будет выигрышным (например, центральный).
+      // Этот элемент будет содержать данные от сервера.
+      const winningDisplayIndex = Math.floor(totalItems / 2);
+      presetWinningIndex = winningDisplayIndex; // Сохраняем глобально для onRollAnimationEnd
+
       for (let i = 0; i < totalItems; i++) {
-        const s = randomSkin();
-        const nick = randomUser(participantsList);
-        stripDiv.insertAdjacentHTML('beforeend', createSkinBlockHTML(nick, s));
+        let currentSkin, currentNickname;
+        if (i === winningDisplayIndex) {
+          // Это выигрышный элемент - используем данные от сервера
+          currentSkin = winningSkin;
+          currentNickname = winnerName;
+        } else {
+          // Остальные элементы - случайные
+          currentSkin = randomSkin(); // Ваша функция для получения случайного скина
+          // Выбираем случайного пользователя, можно исключить победителя, если участников много
+          let otherParticipants = participantsList.filter(p => p !== winnerName);
+          if (otherParticipants.length === 0 && participantsList.length > 0) { // Если остался только победитель или список пуст, но победитель есть
+             currentNickname = randomUser(participantsList); // Берем из исходного списка
+          } else if (otherParticipants.length > 0) {
+             currentNickname = randomUser(otherParticipants);
+          } else {
+             currentNickname = 'viewer'; // Если участников нет вообще
+          }
+        }
+
+        // Фоллбэк, если скин по какой-то причине не определился (например, winningSkin был null/undefined)
+        if (!currentSkin || !currentSkin.name || !currentSkin.image) {
+          console.warn('[Overlay] Fallback skin used for item index:', i, 'Original skin data:', currentSkin);
+          currentSkin = { name: "Default Skin", image: "img/default.png", rarity: "Mil-Spec", weapontype: "" };
+        }
+        stripDiv.insertAdjacentHTML('beforeend', createSkinBlockHTML(currentNickname, currentSkin));
       }
 
       const firstItem = stripDiv.querySelector('.skinItem');
-      const skinWidth = firstItem ? firstItem.offsetWidth : 257;
+      const skinWidth = firstItem ? firstItem.offsetWidth : 257; // Ширина одного элемента
 
-      // Определяем координаты контейнера и стрелки
+      // Определяем координаты контейнера и стрелки для точного позиционирования
       const container = document.getElementById('rollerContainer');
       const containerRect = container.getBoundingClientRect();
       const arrow = document.getElementById('centerLine');
       const arrowRect = arrow.getBoundingClientRect();
-      const arrowCenterRelative = (arrowRect.left + arrowRect.width / 2) - containerRect.left;
 
-      let scrollDistance;
-      if (overlaySettings.dropMode === 'preset' && overlaySettings.fixedSkin) {
-        const winningIndex = Math.floor(totalItems / 2);
-        presetWinningIndex = winningIndex;
-        const items = stripDiv.querySelectorAll('.skinItem');
-        const winningItem = items[winningIndex];
-        if (winningItem) {
-          const nameEl = winningItem.querySelector('.skinName');
-          const photoEl = winningItem.querySelector('.skinPhoto');
-          const weaponEl = winningItem.querySelector('.weaponType');
-          winningItem.setAttribute('data-rarity', overlaySettings.fixedSkin.rarity || 'Mil-Spec');
-          if (nameEl) nameEl.textContent = overlaySettings.fixedSkin.name;
-          if (photoEl) photoEl.style.backgroundImage = `url('${overlaySettings.fixedSkin.image}')`;
-          if (weaponEl) weaponEl.textContent = overlaySettings.fixedSkin.weapontype || '';
-        }
-        scrollDistance = winningIndex * skinWidth + (skinWidth / 2) - arrowCenterRelative;
-      } else {
-        const numberOfSkinsToShow = 20;
-        scrollDistance = skinWidth * numberOfSkinsToShow;
-      }
+      // Центр стрелки относительно начала rollerContainer
+      const arrowCenterRelativeToContainer = (arrowRect.left + arrowRect.width / 2) - containerRect.left;
 
+      // Рассчитываем scrollDistance так, чтобы элемент с winningDisplayIndex (выигрышный)
+      // оказался своим центром точно под центром стрелки.
+      // Позиция начала выигрышного элемента: winningDisplayIndex * skinWidth
+      // Центр выигрышного элемента: winningDisplayIndex * skinWidth + skinWidth / 2
+      // Нам нужно, чтобы эта точка совпала с arrowCenterRelativeToContainer после сдвига.
+      // Сдвиг = (winningDisplayIndex * skinWidth + skinWidth / 2) - arrowCenterRelativeToContainer
+      const scrollDistance = (winningDisplayIndex * skinWidth) + (skinWidth / 2) - arrowCenterRelativeToContainer;
+
+      // Динамическое создание keyframes для анимации
       const keyframes = `
         @keyframes rollAnimation {
-          0% { transform: translateX(0); }
-          100% { transform: translateX(-${scrollDistance}px); }
+          0% { transform: translateX(0px); } /* Начальное положение */
+          100% { transform: translateX(-${scrollDistance}px); } /* Конечное положение */
         }
       `;
       let styleEl = document.getElementById('dynamicKeyframes');
@@ -302,18 +341,21 @@
         styleEl.id = 'dynamicKeyframes';
         document.head.appendChild(styleEl);
       }
-      styleEl.innerHTML = keyframes;
+      styleEl.innerHTML = keyframes; // Устанавливаем новые keyframes
 
+      // Запускаем анимацию с небольшой задержкой, чтобы браузер успел применить стили
       setTimeout(() => {
         stripDiv.style.animation = `rollAnimation ${scrollSpeed}s ease-out forwards`;
-      }, 10);
+      }, 50); // Небольшая задержка, можно 10-100ms
 
-      startTickSoundCheck();
+      startTickSoundCheck(); // Запускаем звук тиков
 
+      // Добавляем обработчик окончания анимации
       stripDiv.addEventListener('animationend', onRollAnimationEnd, { once: true });
     }
 
     // Определение победителя по окончании анимации
+    // Определение победителя по окончании анимации (ОБНОВЛЕННАЯ ВЕРСИЯ)
     function onRollAnimationEnd(e) {
       if (e.animationName !== 'rollAnimation') return;
 
@@ -323,9 +365,67 @@
       const items = document.querySelectorAll('#skinStrip .skinItem');
       let winnerItem = null;
 
-      if (overlaySettings.dropMode === 'preset' && overlaySettings.fixedSkin && typeof presetWinningIndex !== 'undefined') {
+      // Теперь мы всегда ожидаем, что presetWinningIndex указывает на правильный элемент,
+      // так как он был установлен в startScrolling с данными от сервера.
+      if (typeof presetWinningIndex !== 'undefined' && items[presetWinningIndex]) {
         winnerItem = items[presetWinningIndex];
+
+        // Логика точной центровки элемента (adjustment) остается актуальной и полезной.
+        // Она гарантирует, что выбранный элемент будет идеально по центру.
+        const rect = winnerItem.getBoundingClientRect();
+        const itemCenter = rect.left + rect.width / 2; // Центр победившего элемента на экране
+        const arrowVisualCenter = arrowRect.left + arrowRect.width / 2; // Центр стрелки на экране
+        const adjustment = itemCenter - arrowVisualCenter; // На сколько нужно сдвинуть ленту, чтобы центры совпали
+
+        const style = window.getComputedStyle(skinStrip);
+        let currentTransformX = 0;
+        // Пытаемся получить текущее значение transform translateX
+        try {
+            // DOMMatrixReadOnly или DOMMatrix - более современный и стандартный способ
+            const matrix = new DOMMatrixReadOnly(style.transform);
+            currentTransformX = matrix.m41;
+        } catch (err) {
+            // Фоллбэк для браузеров, не поддерживающих DOMMatrix напрямую из строки,
+            // или если WebKitCSSMatrix более привычен (но он нестандартный)
+            try {
+                const matrix = new WebKitCSSMatrix(style.transform);
+                currentTransformX = matrix.m41;
+            } catch (fallbackErr) {
+                console.warn('[Overlay] Could not parse transform matrix using DOMMatrix/WebKitCSSMatrix, using regex fallback. Accuracy might be affected.', fallbackErr);
+                // Очень грубый фоллбэк, если matrix не работает.
+                const transformValue = style.transform || skinStrip.style.transform; // Пробуем оба источника
+                const match = transformValue.match(/translateX\(([^px]+)px\)/);
+                if (match && match[1]) {
+                    currentTransformX = parseFloat(match[1]);
+                } else {
+                    currentTransformX = 0; // Не удалось определить, считаем 0
+                    console.warn('[Overlay] Failed to determine currentTransformX.');
+                }
+            }
+        }
+
+        const finalTransformX = currentTransformX - adjustment; // Новое значение translateX
+
+        // Плавная доводка до идеального центра
+        skinStrip.style.transition = 'transform 0.3s ease-out'; // Короткая плавная анимация
+        skinStrip.style.transform = `translateX(${finalTransformX}px)`;
+
+        // Добавляем слушатель события transitionend, чтобы продолжить после завершения анимации доводки
+        skinStrip.addEventListener('transitionend', function adjustmentTransitionEndHandler() {
+            skinStrip.removeEventListener('transitionend', adjustmentTransitionEndHandler); // Удаляем обработчик, чтобы он не сработал снова
+            proceedWithWinner(winnerItem); // Вызываем основную логику обработки победителя
+        }, { once: true }); // { once: true } гарантирует, что обработчик сработает только один раз
+
+        return; // Выходим из onRollAnimationEnd, так как остальная логика будет в proceedWithWinner после transition
+
       } else {
+        console.error('[Overlay] presetWinningIndex не установлен или элемент с таким индексом не найден. Невозможно достоверно определить победителя.');
+        // Если в этом случае ничего не делать, то анимация победителя и звуки не сработают.
+        // Можно добавить фоллбэк на старую логику поиска ближайшего элемента, если это критично,
+        // но это будет означать, что основная логика определения победителя дала сбой.
+        // Например, можно раскомментировать и адаптировать следующий блок, если нужен фоллбэк:
+        /*
+        console.warn('[Overlay] Fallback: trying to find the closest item geometrically.');
         let minDist = Infinity;
         items.forEach(item => {
           const rect = item.getBoundingClientRect();
@@ -337,34 +437,61 @@
           }
         });
         if (winnerItem) {
+          // Если используете фоллбэк, то и доводку нужно здесь делать
           const rect = winnerItem.getBoundingClientRect();
           const itemCenter = rect.left + rect.width / 2;
           const adjustment = itemCenter - (arrowRect.left + arrowRect.width / 2);
           const style = window.getComputedStyle(skinStrip);
-          const matrix = new WebKitCSSMatrix(style.transform);
-          const currentTransform = matrix.m41;
-          const finalTransform = currentTransform - adjustment;
-          skinStrip.style.transition = 'transform 0.5s ease-out';
-          skinStrip.style.transform = `translateX(${finalTransform}px)`;
+          // ... (код для currentTransformX и finalTransformX, как выше) ...
+          skinStrip.style.transition = 'transform 0.3s ease-out';
+          skinStrip.style.transform = `translateX(${finalTransformX}px)`;
+          skinStrip.addEventListener('transitionend', function fallbackAdjustmentEnd() {
+            skinStrip.removeEventListener('transitionend', fallbackAdjustmentEnd);
+            proceedWithWinner(winnerItem);
+          }, { once: true });
+          return;
+        } else {
+            console.error('[Overlay] Fallback failed to find a winner item.');
         }
+        */
+        return; // Выход, так как победитель не определен корректно
       }
+    }
 
-      if (!winnerItem) return;
-      console.log('[Overlay] Selected winner:', winnerItem);
+    // Новая вспомогательная функция для продолжения после определения и доводки победителя
+    function proceedWithWinner(winnerItem) {
+        if (!winnerItem) {
+            console.error('[Overlay] proceedWithWinner вызван без winnerItem.');
+            // Возможно, стоит скрыть оверлей или показать сообщение об ошибке пользователю
+            fadeOutOverlay(); // Например, просто скрыть оверлей
+            return;
+        }
+        console.log('[Overlay] Confirmed winner (after adjustment):', winnerItem);
+        // Дополнительное логирование для отладки
+        const winnerNickFromDOM = winnerItem.querySelector('.participantsNickname') ? winnerItem.querySelector('.participantsNickname').textContent : 'N/A';
+        const winnerSkinNameFromDOM = winnerItem.querySelector('.skinName') ? winnerItem.querySelector('.skinName').textContent : 'N/A';
+        console.log(`[Overlay] Winner displayed: Nick: ${winnerNickFromDOM}, Skin: ${winnerSkinNameFromDOM}`);
 
-      const winnerSound = document.getElementById('winnerSound');
-      winnerSound.currentTime = 0;
-      winnerSound.play();
+        const winnerSound = document.getElementById('winnerSound');
+        if (winnerSound) {
+            winnerSound.currentTime = 0;
+            winnerSound.play().catch(e => console.error("Error playing winner sound:", e));
+        }
 
-      animateWinnerHex(winnerItem);
-      
-      // Через 6 секунд после показа победителя продолжаем воспроизведение видео
-      setTimeout(() => {
-        const video = document.getElementById('backgroundVideo');
-        video.play().catch(err => console.error('Ошибка продолжения видео:', err));
-      }, 6000);
-      
-      setTimeout(() => { fadeOutOverlay(); }, 8000);
+        animateWinnerHex(winnerItem); // Ваша функция анимации победившего гекса
+
+        // Через 6 секунд после показа победителя продолжаем воспроизведение видео
+        setTimeout(() => {
+            const video = document.getElementById('backgroundVideo');
+            if (video) { // Проверка на существование видео элемента
+                 video.play().catch(err => console.error('Ошибка продолжения видео:', err));
+            }
+        }, 6000);
+
+        // Через 8 секунд скрываем оверлей
+        setTimeout(() => {
+            fadeOutOverlay(); // Ваша функция для скрытия оверлея
+        }, 8000);
     }
 
     // Функция анимации победителя (без изменений, как в исходном варианте)
