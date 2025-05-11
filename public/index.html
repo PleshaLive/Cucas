@@ -71,7 +71,7 @@
           fadeInOverlay();
           playVideo();
         } else if (data.type === 'roll') {
-          startScrolling(data.participants || []);
+          startScrolling(data);
         } else if (data.type === 'updateParticipants') {
           updateParticipantsOverlay(data.participants);
         } else if (data.type === 'settings-updated') {
@@ -245,127 +245,178 @@
     }
 
     // Функция прокрутки скинов
-    function startScrolling(participantsList) {
-      const stripDiv = document.getElementById('skinStrip');
-      stripDiv.classList.remove('initial-animation');
-      stripDiv.style.transition = 'none';
-      stripDiv.style.transform = 'translateX(0)';
-      stripDiv.innerHTML = '';
+    function startScrolling(rollData) { // Стало
+  const stripDiv = document.getElementById('skinStrip');
+  stripDiv.classList.remove('initial-animation');
+  stripDiv.style.transition = 'none';
+  stripDiv.style.transform = 'translateX(0)';
+  stripDiv.innerHTML = ''; // Очищаем ленту перед заполнением
 
-      const totalItems = 75;
-      for (let i = 0; i < totalItems; i++) {
-        const s = randomSkin();
-        const nick = randomUser(participantsList);
-        stripDiv.insertAdjacentHTML('beforeend', createSkinBlockHTML(nick, s));
+  const participantsList = rollData.participants || [];
+  const serverWinnerName = rollData.winner; // Имя победителя от сервера
+  const serverWonSkin = rollData.selectedSkinToDisplay; // Скин победителя от сервера
+
+  const totalItems = 75; // Общее количество элементов в ленте (можно настроить)
+  // Индекс элемента, который будет выигрышным на клиенте (например, центральный)
+  const winningIndexOnClient = Math.floor(totalItems / 2);
+  presetWinningIndex = winningIndexOnClient; // Сохраняем для onRollAnimationEnd
+
+  for (let i = 0; i < totalItems; i++) {
+    let skinToDisplay;
+    let nicknameToDisplay;
+
+    if (i === winningIndexOnClient) {
+      // Это выигрышный элемент, используем данные с сервера
+      skinToDisplay = serverWonSkin;
+      nicknameToDisplay = serverWinnerName;
+
+      // Фоллбэк, если сервер по какой-то причине не прислал данные
+      if (!skinToDisplay) {
+        console.warn('[Overlay] Server did not provide a skin for the winner. Using random skin.');
+        skinToDisplay = randomSkin(); // Используем глобальные skins и rarityChances
       }
-
-      const firstItem = stripDiv.querySelector('.skinItem');
-      const skinWidth = firstItem ? firstItem.offsetWidth : 257;
-
-      // Определяем координаты контейнера и стрелки
-      const container = document.getElementById('rollerContainer');
-      const containerRect = container.getBoundingClientRect();
-      const arrow = document.getElementById('centerLine');
-      const arrowRect = arrow.getBoundingClientRect();
-      const arrowCenterRelative = (arrowRect.left + arrowRect.width / 2) - containerRect.left;
-
-      let scrollDistance;
-      if (overlaySettings.dropMode === 'preset' && overlaySettings.fixedSkin) {
-        const winningIndex = Math.floor(totalItems / 2);
-        presetWinningIndex = winningIndex;
-        const items = stripDiv.querySelectorAll('.skinItem');
-        const winningItem = items[winningIndex];
-        if (winningItem) {
-          const nameEl = winningItem.querySelector('.skinName');
-          const photoEl = winningItem.querySelector('.skinPhoto');
-          const weaponEl = winningItem.querySelector('.weaponType');
-          winningItem.setAttribute('data-rarity', overlaySettings.fixedSkin.rarity || 'Mil-Spec');
-          if (nameEl) nameEl.textContent = overlaySettings.fixedSkin.name;
-          if (photoEl) photoEl.style.backgroundImage = `url('${overlaySettings.fixedSkin.image}')`;
-          if (weaponEl) weaponEl.textContent = overlaySettings.fixedSkin.weapontype || '';
-        }
-        scrollDistance = winningIndex * skinWidth + (skinWidth / 2) - arrowCenterRelative;
-      } else {
-        const numberOfSkinsToShow = 20;
-        scrollDistance = skinWidth * numberOfSkinsToShow;
+      if (!nicknameToDisplay) {
+        console.warn('[Overlay] Server did not provide a winner name. Using random participant or "viewer".');
+        nicknameToDisplay = randomUser(participantsList); // randomUser использует переданный participantsList
       }
-
-      const keyframes = `
-        @keyframes rollAnimation {
-          0% { transform: translateX(0); }
-          100% { transform: translateX(-${scrollDistance}px); }
-        }
-      `;
-      let styleEl = document.getElementById('dynamicKeyframes');
-      if (!styleEl) {
-        styleEl = document.createElement('style');
-        styleEl.id = 'dynamicKeyframes';
-        document.head.appendChild(styleEl);
-      }
-      styleEl.innerHTML = keyframes;
-
-      setTimeout(() => {
-        stripDiv.style.animation = `rollAnimation ${scrollSpeed}s ease-out forwards`;
-      }, 10);
-
-      startTickSoundCheck();
-
-      stripDiv.addEventListener('animationend', onRollAnimationEnd, { once: true });
+    } else {
+      // Для остальных элементов генерируем случайные данные
+      skinToDisplay = randomSkin();
+      nicknameToDisplay = randomUser(participantsList);
     }
+    stripDiv.insertAdjacentHTML('beforeend', createSkinBlockHTML(nicknameToDisplay, skinToDisplay));
+  }
+
+  const firstItem = stripDiv.querySelector('.skinItem');
+  const skinWidth = firstItem ? firstItem.offsetWidth : 257; // Ширина одного элемента
+
+  const container = document.getElementById('rollerContainer');
+  const containerRect = container.getBoundingClientRect();
+  const arrow = document.getElementById('centerLine');
+  const arrowRect = arrow.getBoundingClientRect();
+  const arrowCenterRelative = (arrowRect.left + arrowRect.width / 2) - containerRect.left;
+
+  // Рассчитываем дистанцию так, чтобы winningIndexOnClient оказался под стрелкой
+  // (winningIndexOnClient * skinWidth) - смещение до начала элемента
+  // (arrowCenterRelative) - смещение до центра стрелки
+  // (skinWidth / 2) - чтобы центр элемента совпал с центром стрелки
+  let scrollDistance = (winningIndexOnClient * skinWidth) - arrowCenterRelative + (skinWidth / 2);
+
+  // Удаляем существующие стили для анимации, если они есть
+  let styleEl = document.getElementById('dynamicKeyframes');
+  if (styleEl) styleEl.remove();
+
+  const keyframes = `
+    @keyframes rollAnimation {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(-${scrollDistance}px); }
+    }
+  `;
+  styleEl = document.createElement('style');
+  styleEl.id = 'dynamicKeyframes';
+  document.head.appendChild(styleEl);
+  styleEl.innerHTML = keyframes;
+
+  setTimeout(() => {
+    stripDiv.style.animation = `rollAnimation ${scrollSpeed}s ease-out forwards`;
+  }, 10);
+
+  startTickSoundCheck();
+
+  stripDiv.addEventListener('animationend', onRollAnimationEnd, { once: true });
+}
 
     // Определение победителя по окончании анимации
     function onRollAnimationEnd(e) {
-      if (e.animationName !== 'rollAnimation') return;
+  if (e.animationName !== 'rollAnimation') return;
 
-      const arrow = document.getElementById('centerLine');
-      const arrowRect = arrow.getBoundingClientRect();
-      const skinStrip = document.getElementById('skinStrip');
-      const items = document.querySelectorAll('#skinStrip .skinItem');
-      let winnerItem = null;
+  const arrow = document.getElementById('centerLine');
+  const arrowRect = arrow.getBoundingClientRect();
+  const skinStrip = document.getElementById('skinStrip');
+  const items = document.querySelectorAll('#skinStrip .skinItem');
+  let winnerItem = null;
 
-      if (overlaySettings.dropMode === 'preset' && overlaySettings.fixedSkin && typeof presetWinningIndex !== 'undefined') {
-        winnerItem = items[presetWinningIndex];
-      } else {
-        let minDist = Infinity;
-        items.forEach(item => {
-          const rect = item.getBoundingClientRect();
-          const itemCenter = rect.left + rect.width / 2;
-          const dist = Math.abs(itemCenter - (arrowRect.left + arrowRect.width / 2));
-          if (dist < minDist) {
-            minDist = dist;
-            winnerItem = item;
-          }
-        });
-        if (winnerItem) {
-          const rect = winnerItem.getBoundingClientRect();
-          const itemCenter = rect.left + rect.width / 2;
-          const adjustment = itemCenter - (arrowRect.left + arrowRect.width / 2);
-          const style = window.getComputedStyle(skinStrip);
-          const matrix = new WebKitCSSMatrix(style.transform);
-          const currentTransform = matrix.m41;
-          const finalTransform = currentTransform - adjustment;
-          skinStrip.style.transition = 'transform 0.5s ease-out';
-          skinStrip.style.transform = `translateX(${finalTransform}px)`;
+  // Используем presetWinningIndex, который был установлен в startScrolling
+  // Это индекс элемента, который должен был остановиться под стрелкой и содержит данные от сервера
+  if (typeof presetWinningIndex !== 'undefined' && items[presetWinningIndex]) {
+    winnerItem = items[presetWinningIndex];
+
+    // Микро-коррекция для точного центрирования (опционально, но улучшает визуализацию)
+    const winnerItemRect = winnerItem.getBoundingClientRect();
+    const winnerItemCenter = winnerItemRect.left + winnerItemRect.width / 2;
+    const arrowCenter = arrowRect.left + arrowRect.width / 2;
+    const adjustment = winnerItemCenter - arrowCenter;
+
+    const currentStyle = window.getComputedStyle(skinStrip);
+    const currentTransformValue = currentStyle.transform;
+    let currentTranslateX = 0;
+
+    if (currentTransformValue && currentTransformValue !== 'none') {
+        const matrixMatch = currentTransformValue.match(/matrix\((.+)\)/);
+        if (matrixMatch && matrixMatch[1]) {
+            const values = matrixMatch[1].split(',');
+            currentTranslateX = parseFloat(values[4]); // tx для 2D-матрицы
+        } else {
+            const matrix3dMatch = currentTransformValue.match(/matrix3d\((.+)\)/);
+            if (matrix3dMatch && matrix3dMatch[1]) {
+                const values = matrix3dMatch[1].split(',');
+                currentTranslateX = parseFloat(values[12]); // tx для 3D-матрицы
+            } else if (currentTransformValue.startsWith('translateX(')) {
+                currentTranslateX = parseFloat(currentTransformValue.substring(11));
+            }
         }
-      }
-
-      if (!winnerItem) return;
-      console.log('[Overlay] Selected winner:', winnerItem);
-
-      const winnerSound = document.getElementById('winnerSound');
-      winnerSound.currentTime = 0;
-      winnerSound.play();
-
-      animateWinnerHex(winnerItem);
-      
-      // Через 6 секунд после показа победителя продолжаем воспроизведение видео
-      setTimeout(() => {
-        const video = document.getElementById('backgroundVideo');
-        video.play().catch(err => console.error('Ошибка продолжения видео:', err));
-      }, 6000);
-      
-      setTimeout(() => { fadeOutOverlay(); }, 8000);
     }
+
+    const finalTransform = currentTranslateX - adjustment;
+    skinStrip.style.transition = 'transform 0.5s ease-out'; // Плавная коррекция
+    skinStrip.style.transform = `translateX(${finalTransform}px)`;
+
+  } else {
+    // Фоллбэк, если что-то пошло не так (не должно происходить при правильной логике)
+    console.warn('[Overlay] Could not determine winner based on presetWinningIndex. Falling back to closest item.');
+    let minDist = Infinity;
+    items.forEach(item => {
+      const rect = item.getBoundingClientRect();
+      const itemCenter = rect.left + rect.width / 2;
+      const dist = Math.abs(itemCenter - (arrowRect.left + arrowRect.width / 2));
+      if (dist < minDist) {
+        minDist = dist;
+        winnerItem = item;
+      }
+    });
+    // Здесь также можно добавить код для коррекции положения, если необходимо
+  }
+
+  if (!winnerItem) {
+    console.error('[Overlay] CRITICAL: No winner item could be determined.');
+    return; // Прерываем, если победителя нет
+  }
+  console.log('[Overlay] Winner item determined by client:', winnerItem);
+  const winnerNicknameElement = winnerItem.querySelector('.participantsNickname');
+  if (winnerNicknameElement) {
+      console.log('[Overlay] Winner Nickname on client:', winnerNicknameElement.textContent);
+  }
+
+
+  const winnerSound = document.getElementById('winnerSound');
+  if (winnerSound) {
+    winnerSound.currentTime = 0;
+    winnerSound.play().catch(err => console.error("Error playing winner sound:", err));
+  }
+
+  animateWinnerHex(winnerItem); // winnerItem теперь должен содержать корректные данные
+
+  setTimeout(() => {
+    const video = document.getElementById('backgroundVideo');
+    if (video) {
+      video.play().catch(err => console.error('Ошибка продолжения видео:', err));
+    }
+  }, 6000);
+
+  setTimeout(() => {
+    fadeOutOverlay();
+  }, 8000);
+}
 
     // Функция анимации победителя (без изменений, как в исходном варианте)
     function animateWinnerHex(winnerItem) {
