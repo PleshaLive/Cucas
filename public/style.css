@@ -9,14 +9,16 @@ body {
 }
 
 #overlayContainer {
-    position: fixed; /* Попробуйте fixed вместо absolute для большей предсказуемости */
-    top: 0;
-    left: 0;
-    width: 100vw; /* Явно в единицах viewport */
-    height: 100vh; /* Явно в единицах viewport */
-    background-color: rgba(255,0,0,0.1); /* Временный фон для проверки границ */
-    display: block; /* Временно уберите flex для теста позиционирования rollerContainer */
-    /* остальные стили opacity, transition пока можно оставить */
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    opacity: 0;
+    transition: opacity 1s ease-in-out;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    pointer-events: none;
 }
 #overlayContainer.visible { 
     opacity: 1; 
@@ -34,14 +36,13 @@ body {
 
 /* Мейн контейнер */
 #rollerContainer {
-    width: 1800px; /* Оставьте как есть */
-    height: 200px; /* Оставьте как есть */
-    margin-top: 40px;
-    margin-left: auto;
-    margin-right: auto;
+    width: 1800px; /* увеличено на 500px (было 1200px) */
+    height: 200px;
+    margin: 40px auto;
+    border: 0px solid #0F0C1D;
+    overflow: hidden;
     position: relative;
-    background-color: rgba(0,255,0,0.1); /* Временный фон */
-    /* overflow: hidden; */
+    background: rgba(0, 0, 0, 0.5);
 }
 
 #centerLine {
