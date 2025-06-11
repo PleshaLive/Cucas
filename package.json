@@ -7,9 +7,12 @@
     "start": "node index.js"
   },
   "dependencies": {
+    "@pagoru/kick_live_ws": "^2.0.1",
+    "@retconned/kick-js": "^0.5.3",
     "express": "^4.21.2",
-    "express-session": "^1.17.3",    
+    "express-session": "^1.18.1",
     "multer": "^1.4.5-lts.1",
+    "node-fetch": "^3.3.2",
     "tmi.js": "^1.8.5",
     "ws": "^8.18.1"
   },

@@ -1,7 +1,7 @@
 {
-  "BOT_USERNAME": "galaxy_battle_cstv",
-  "BOT_OAUTH": "oauth:2p3nxl90u9vbnbto8sypk2qflqvw3r",
-  "CHANNEL_NAME": "galaxy_battle_cstv",
+  "BOT_CHANNEL": "galaxy_esports",
+  "BEARER_TOKEN": "01JSCNTV8WP345JFTY5CQFR5T7",
+  "COOKIES": "USER_LOCALE=ru; _gcl_au=1.1.72159712.1745255241; _ga=GA1.1.1271212748.1745255241; XSRF-TOKEN=eyJpdiI6IlRNenpUWkhZNFErT3lkNnFIYk5tVUE9PSIsInZhbHVlIjoiYUdqdFBRdFdYMlpFZ0RKUzMwUWhmcnZ3MW9VS1Q0YnVtb0hKRG1hMTR1Yk9VcXR1S3VoWWpRUzJiZjdxb3JXLytBbE1vYThPNTluNWZTQzNqOEdCcTJVMHZndkh3QkVCT2FFeVJaWFlTMXo2Y0NSN0VNVDRuY1EwclRYNXpvbm0iLCJtYWMiOiI3ODc4NTgxY2NhNDU0ODAzNjQxYmRlM2FiOGM0YTgxOTNhODg2NDIyNDU0OTU3ODZkNDlkNDY5NjAwNDZlOWRhIiwidGFnIjoiIn0%3D; session_token=211356883%7CJIjYlffYTy6LVrAsMYBXEThcY7GciRPE9lse68Rw; __stripe_mid=df715680-655a-47ce-a039-c3caeaf57cf7fbb8b5; intercom-id-per7qesc=e262a9ac-e6c3-4eb8-8f0d-8936d39d9bbd; intercom-session-per7qesc=; intercom-device-id-per7qesc=d20650f2-a800-4ce1-af3a-465dc3339330; volume=0; __stripe_sid=b8147391-ea2a-4412-af3b-f3a0ae042fcf5af893; _ga_YS2DLSGQ53=GS1.1.1745577890.5.1.1745578113.59.0.1077574161; _dd_s=logs=1&id=93f728bd-617e-4785-9e95-7a1be9c11199&created=1745577890599&expire=1745579073615&rum=0",
   "chatDelay": "130",
   "skins": [
     {
@@ -215,5 +215,8 @@
     "Classified": 3,
     "Covert": 0.7,
     "Rare Special Items": 0.3
-  }
+  },
+  "BOT_USERNAME": "galaxy_esports",
+  "BOT_OAUTH": "01JSCNTV8WP345JFTY5CQFR5T7",
+  "CHANNEL_NAME": "galaxy_esports"
 }
